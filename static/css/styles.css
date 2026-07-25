@@ -122,3 +122,53 @@ body { display: flex; min-height: 100vh; }
     font-weight: 600; cursor: pointer; transition: opacity 0.15s;
 }
 .welcome-screen button:hover { opacity: 0.9; }
+
+/* Practice page — module grid */
+.module-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+.module-card { background: var(--surface); padding: 20px; border-radius: var(--radius-lg); cursor: pointer; text-align: center; transition: transform 0.15s, box-shadow 0.15s; }
+.module-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.module-icon { font-size: 32px; display: block; margin-bottom: 8px; }
+.module-name { font-weight: 600; display: block; }
+.module-weight { color: var(--accent); font-size: 13px; }
+
+/* Question flow */
+.question-flow { max-width: 700px; margin: 0 auto; }
+.question-header { display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text-dim); }
+.question-card { background: var(--surface); padding: 24px; border-radius: var(--radius-lg); margin-bottom: 16px; }
+.question-content { font-size: 16px; line-height: 1.8; margin-bottom: 20px; }
+.option-label { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--surface2); border-radius: var(--radius); margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; }
+.option-label:has(input:checked) { border-color: var(--accent); background: rgba(245,158,11,0.1); }
+.answer-input { width: 100%; padding: 12px 16px; border: 1px solid var(--surface2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 15px; outline: none; }
+.answer-input:focus { border-color: var(--accent); }
+.btn-primary { padding: 12px 24px; border: none; border-radius: var(--radius); background: var(--accent); color: #1e293b; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-secondary { padding: 12px 24px; border: 1px solid var(--surface2); border-radius: var(--radius); background: transparent; color: var(--text-dim); font-size: 15px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+.btn-secondary:hover { background: var(--surface); color: var(--text); }
+
+/* Result screen */
+.result-screen { text-align: center; max-width: 500px; margin: 0 auto; }
+.result-big-number { font-size: 64px; font-weight: 700; color: var(--accent); }
+.result-accuracy { font-size: 20px; margin: 8px 0; }
+.result-xp { font-size: 18px; color: var(--correct); margin-bottom: 16px; }
+
+/* Gacha reveal */
+.gacha-card { width: 200px; height: 140px; margin: 20px auto; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 48px; }
+.gacha-common { border: 2px solid var(--rarity-common); }
+.gacha-rare { border: 2px solid var(--rarity-rare); box-shadow: 0 0 20px rgba(59,130,246,0.3); }
+.gacha-epic { border: 2px solid var(--rarity-epic); box-shadow: 0 0 20px rgba(168,85,247,0.4); }
+.gacha-legendary { border: 2px solid var(--rarity-legendary); box-shadow: 0 0 30px rgba(245,158,11,0.5); animation: glow-legendary 1s infinite alternate; }
+.gacha-mythic { border: 2px solid var(--rarity-mythic); box-shadow: 0 0 40px rgba(239,68,68,0.6); animation: glow-mythic 0.5s infinite alternate; }
+@keyframes glow-legendary { from { box-shadow: 0 0 20px rgba(245,158,11,0.3); } to { box-shadow: 0 0 40px rgba(245,158,11,0.6); } }
+@keyframes glow-mythic { from { box-shadow: 0 0 20px rgba(239,68,68,0.3); } to { box-shadow: 0 0 50px rgba(239,68,68,0.8); } }
+.gacha-spinner { animation: spin 0.8s ease-in-out infinite alternate; }
+@keyframes spin { from { transform: rotateY(0deg); } to { transform: rotateY(180deg); } }
+.gacha-rarity { font-size: 14px; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px; }
+.gacha-common .gacha-rarity { color: var(--rarity-common); }
+.gacha-rare .gacha-rarity { color: var(--rarity-rare); }
+.gacha-epic .gacha-rarity { color: var(--rarity-epic); }
+.gacha-legendary .gacha-rarity { color: var(--rarity-legendary); }
+.gacha-mythic .gacha-rarity { color: var(--rarity-mythic); }
+.gacha-item { font-size: 16px; font-weight: 600; color: var(--text); }
+
+/* Near miss banner */
+.near-miss-banner { background: var(--surface); padding: 16px; border-radius: var(--radius-lg); margin: 16px 0; border-left: 3px solid var(--accent); }

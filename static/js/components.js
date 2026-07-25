@@ -24,14 +24,25 @@ const Components = {
         </div>`;
     },
 
-    gachaReveal(item) {
-        // 1.5s flip animation overlay — placeholder
-        return `<div class="gacha-reveal">
-            <div class="gacha-card gacha-${item.rarity || 'common'}">
-                <div class="gacha-front">?</div>
-                <div class="gacha-back">${item.name || 'Item'}</div>
-            </div>
-        </div>`;
+    gachaReveal(item, container) {
+        // 1.5s flip animation: card spins, then reveals rarity with colored glow
+        container.innerHTML = `
+            <div class="gacha-card gacha-${item.rarity}">
+                <div class="gacha-spinner">🎴</div>
+                <div class="gacha-result" style="display:none">
+                    <div class="gacha-rarity">${item.rarity.toUpperCase()}</div>
+                    <div class="gacha-item">${item.item_name}</div>
+                </div>
+            </div>`;
+        const spinner = container.querySelector('.gacha-spinner');
+        const result = container.querySelector('.gacha-result');
+        Audio.gachaFlip();
+        // 1.5s suspense animation
+        setTimeout(() => {
+            spinner.style.display = 'none';
+            result.style.display = 'block';
+            Audio.gachaRare(item.rarity);
+        }, 1500);
     },
 
     modal(title, content, buttons) {
