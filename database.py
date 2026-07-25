@@ -252,5 +252,9 @@ def init_db():
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_concept_deps_unique "
         "ON concept_dependencies(concept_name, COALESCE(parent_concept, ''))"
     )
+    cur.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_questions_content "
+        "ON questions(module_id, content)"
+    )
     conn.commit()
     conn.close()
