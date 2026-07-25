@@ -1,15 +1,21 @@
 // app.js — SPA router, API helper, global state, toast, modal
+"use strict";
+
 const App = {
     state: { player: null },
     baseURL: '/api',
+    _navigating: false,
 
     async api(method, path, body) {
         const opts = { method, headers: { 'Content-Type': 'application/json' } };
         if (body) opts.body = JSON.stringify(body);
         const res = await fetch(`${this.baseURL}${path}`, opts);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Request failed');
-        return data;
+        if (!res.ok) {
+            let detail;
+            try { const err = await res.json(); detail = err.detail; } catch (_) { /* ignore */ }
+            throw new Error(detail || `Request failed: ${res.status}`);
+        }
+        return res.json();
     },
 
     get(path) { return this.api('GET', path); },
@@ -24,6 +30,8 @@ const App = {
     },
 
     navigate(page) {
+        if (this._navigating) return;
+        this._navigating = true;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         const target = document.getElementById(`page-${page}`);
@@ -31,13 +39,18 @@ const App = {
         const nav = document.querySelector(`[data-page="${page}"]`);
         if (nav) nav.classList.add('active');
         window.location.hash = page;
+        this._navigating = false;
     },
 
     async refreshPlayer() {
         if (!this.state.player) return;
-        const p = await this.get(`/players/${this.state.player.id}`);
-        this.state.player = p;
-        this.updateSidebar();
+        try {
+            const p = await this.get(`/players/${this.state.player.id}`);
+            this.state.player = p;
+            this.updateSidebar();
+        } catch (e) {
+            this.toast('刷新玩家数据失败', 'error');
+        }
     },
 
     updateSidebar() {
@@ -77,12 +90,16 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('create-player-form').onsubmit = async (e) => {
             e.preventDefault();
             const username = document.getElementById('username-input').value;
-            const p = await App.post('/players', { username });
-            App.state.player = p;
-            App.updateSidebar();
-            localStorage.setItem('playerId', p.id);
-            App.navigate('dashboard');
-            if (typeof dashboard !== 'undefined') dashboard.render();
+            try {
+                const p = await App.post('/players', { username });
+                App.state.player = p;
+                App.updateSidebar();
+                localStorage.setItem('playerId', p.id);
+                App.navigate('dashboard');
+                if (typeof dashboard !== 'undefined') dashboard.render();
+            } catch (e) {
+                App.toast(e.message || '创建角色失败，请重试', 'error');
+            }
         };
     }
 });
@@ -90,6 +107,7 @@ window.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('hashchange', () => {
     const page = window.location.hash.slice(1) || 'dashboard';
     App.navigate(page);
+    App.refreshPlayer();
 });
 
 // Nav clicks

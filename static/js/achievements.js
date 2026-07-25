@@ -1,3 +1,4 @@
+"use strict";
 // achievements.js — placeholder page module (Task 4+)
 const achievements = {
     render() {

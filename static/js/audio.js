@@ -1,4 +1,6 @@
 // audio.js — Web Audio API sound effects (no external files)
+"use strict";
+
 const Audio = {
     ctx: null,
     _init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },

@@ -1,3 +1,4 @@
+"use strict";
 // guild.js — placeholder page module (Task 4+)
 const guild = {
     render() {

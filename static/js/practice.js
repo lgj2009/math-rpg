@@ -1,3 +1,4 @@
+"use strict";
 // practice.js — placeholder page module (Task 4+)
 const practice = {
     render() {

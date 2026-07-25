@@ -1,3 +1,4 @@
+"use strict";
 // dashboard.js — placeholder page module (Task 4+)
 const dashboard = {
     render() {

@@ -1,4 +1,6 @@
 // components.js — shared UI widgets
+"use strict";
+
 const Components = {
     xpBar(player) {
         const thresholds = [0, 500, 1500, 3500, 7000, 12000, 20000];

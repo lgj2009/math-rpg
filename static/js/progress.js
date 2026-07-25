@@ -1,3 +1,4 @@
+"use strict";
 // progress.js — placeholder page module (Task 4+)
 const progress = {
     render() {

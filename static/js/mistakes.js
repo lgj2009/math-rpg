@@ -1,3 +1,4 @@
+"use strict";
 // mistakes.js — placeholder page module (Task 4+)
 const mistakes = {
     render() {
