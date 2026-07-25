@@ -38,14 +38,19 @@ def schedule_rounds(blind_spot_id: int):
     if not spot:
         return
 
+    # Fetch original question from the mistake once (it doesn't change per round)
+    mistake_text = None
+    if spot["created_from_mistake_id"]:
+        mistake = db.execute("SELECT question FROM mistakes WHERE id=?",
+                             (spot["created_from_mistake_id"],)).fetchone()
+        if mistake:
+            mistake_text = mistake["question"]
+
     today = date.today()
     intervals = [0, 2, 7, 21]
     for round_num, offset in enumerate(intervals, 1):
         sched_date = (today + timedelta(days=offset)).isoformat()
-        # Reuse original question text from the mistake for round 1
-        mistake = db.execute("SELECT question FROM mistakes WHERE id=?",
-                             (spot["created_from_mistake_id"],)).fetchone()
-        q_text = mistake["question"] if mistake else spot["name"]
+        q_text = mistake_text if mistake_text else spot["name"]
         db.execute(
             """INSERT OR IGNORE INTO blind_spot_rounds
                (blind_spot_id, round, question, question_type, scheduled_date)
@@ -99,7 +104,7 @@ def attack_blind_spot(player_id: int, blind_spot_id: int, answer: str, round_num
     db.commit()
 
     # Award XP — 80 for correct answer
-    xp_res = award_xp(player_id, 80 if correct else 0)
+    award_xp(player_id, 80 if correct else 0)
 
     if boss_killed:
         return {

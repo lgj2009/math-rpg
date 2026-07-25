@@ -14,6 +14,20 @@ class BlindSpotResponse(BaseModel):
     parent_id: Optional[int] = None
 
 
+class BlindSpotRoundResponse(BaseModel):
+    id: int
+    blind_spot_id: int
+    round: int
+    question: str
+    question_type: str
+    scheduled_date: str
+    result: str
+    answered_date: Optional[str] = None
+    spot_name: str
+    hp_current: int
+    spot_status: str
+
+
 class AttackRequest(BaseModel):
     answer: str
     round_number: int  # 1-4
