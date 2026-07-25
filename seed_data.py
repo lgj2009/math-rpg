@@ -36,6 +36,8 @@ CONCEPT_DEPS = [
     ("椭圆标准方程", None, "选修2-1 P38"),
     ("双曲线标准方程", None, "选修2-1 P50"),
     ("抛物线标准方程", None, "选修2-1 P60"),
+    ("圆的标准方程", None, "必修二 P10"),
+    ("两点间距离公式", None, "必修二 P105"),
 ]
 
 SEED_QUESTIONS = [
@@ -162,7 +164,7 @@ SEED_QUESTIONS = [
     # Q19: choice, diff 2, rectangular prism diagonal angle (has trap)
     (4, None, "choice", 2, '["空间几何体"]', 3, 1,
      "长方体的长、宽、高分别为 $3$、$4$、$5$，则体对角线与底面所成角的正切值为",
-     '["A. \\\\frac{\\\\sqrt{2}}{2}", "B. 1", "C. \\\\sqrt{2}", "D. \\\\frac{5}{5}"]',
+     '["A. \\\\frac{\\\\sqrt{2}}{2}", "B. 1", "C. \\\\sqrt{2}", "D. \\\\frac{5}{4}"]',
      "B", "底面对角线 $= \\sqrt{3^2+4^2}=5$，高 $=5$，$\\tan\\theta = \\frac{5}{5} = 1$", 120,
      None, None, "generated", None),
 
@@ -180,14 +182,14 @@ SEED_QUESTIONS = [
 
     # ==================== Module 5: 解析几何 (5 questions) ====================
     # Q22: choice, diff 1, circle radius
-    (5, None, "choice", 1, '["椭圆标准方程"]', 1, 0,
+    (5, None, "choice", 1, '["圆的标准方程"]', 1, 0,
      "圆 $x^2 + y^2 = 4$ 的半径为",
      '["A. 1", "B. 2", "C. 4", "D. 16"]',
      "B", "圆的标准方程 $x^2+y^2=r^2$，$r^2=4$，$r=2$", 60,
      None, None, "generated", None),
 
     # Q23: fill, diff 1, distance between points
-    (5, None, "fill", 1, '["椭圆标准方程"]', 1, 0,
+    (5, None, "fill", 1, '["两点间距离公式"]', 1, 0,
      "点 $(1,2)$ 到点 $(4,6)$ 的距离为____",
      None, "5", "$d = \\sqrt{(4-1)^2 + (6-2)^2} = \\sqrt{9+16}=5$", 60,
      None, None, "generated", None),
