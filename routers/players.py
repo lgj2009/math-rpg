@@ -1,6 +1,6 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
-from models.player import PlayerCreate, PlayerResponse, CheckinResponse, EnergyResponse
+from models.player import PlayerCreate, PlayerResponse
 from services import player_service
 
 router = APIRouter(prefix="/api/players", tags=["players"])
@@ -29,7 +29,7 @@ def checkin(player_id: int):
 
 @router.post("/{player_id}/claim-energy")
 def claim_energy(player_id: int, hour: int | None = None):
-    h = hour or datetime.now().hour
+    h = hour if hour is not None else datetime.now().hour
     result = player_service.claim_energy(player_id, h)
     if "detail" in result:
         raise HTTPException(400, result["detail"])
