@@ -2,6 +2,7 @@ import json
 from datetime import date, timedelta
 from database import get_db
 from services.player_service import award_xp, spend_energy
+from services.blind_spot_service import schedule_rounds
 import config
 
 
@@ -41,6 +42,8 @@ def _ensure_blind_spot(db, player_id, name, module_id, mistake_id):
         (player_id, name, json.dumps([module_id]), mistake_id)
     )
     db.commit()
+    # Schedule the 4 rounds for the newly created blind spot
+    schedule_rounds(cur.lastrowid)
     return cur.lastrowid
 
 
