@@ -40,6 +40,11 @@ const App = {
         if (nav) nav.classList.add('active');
         window.location.hash = page;
         this._navigating = false;
+        // Auto-render page module
+        const renderers = { dashboard, tasks, practice, mistakes, progress, guild, season, achievements, settings };
+        if (renderers[page] && typeof renderers[page].render === 'function') {
+            renderers[page].render();
+        }
     },
 
     async refreshPlayer() {

@@ -21,9 +21,11 @@ def get_player(player_id: int) -> dict:
     db = get_db()
     row = db.execute("SELECT * FROM players WHERE id=?", (player_id,)).fetchone()
     if not row:
+        db.close()
         return None
     p = dict(row)
     p["owned_cosmetics"] = json.loads(p.get("owned_cosmetics", "[]"))
+    db.close()
     _recalc_energy(p)
     return p
 
@@ -40,11 +42,11 @@ def _recalc_energy(p: dict) -> dict:
     gained = int(elapsed / config.ENERGY_REGEN_SECONDS)
     if gained > 0:
         p["focus_energy"] = min(p["focus_max"], p["focus_energy"] + gained)
-        # Update DB
         db = get_db()
         db.execute("UPDATE players SET focus_energy=?, last_energy_refill=datetime('now') WHERE id=?",
                    (p["focus_energy"], p["id"]))
         db.commit()
+        db.close()
     return p
 
 
