@@ -1,0 +1,124 @@
+/* Math RPG — Dark theme, sidebar layout, page visibility */
+
+:root {
+    --sidebar-w: 240px;
+    --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+    --text: #f1f5f9; --text-dim: #94a3b8;
+    --accent: #f59e0b; --accent2: #8b5cf6;
+    --correct: #22c55e; --wrong: #ef4444;
+    --rarity-common: #9ca3af; --rarity-rare: #3b82f6;
+    --rarity-epic: #a855f7; --rarity-legendary: #f59e0b;
+    --rarity-mythic: #ef4444;
+    --radius: 8px; --radius-lg: 12px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: var(--text); background: var(--bg);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+#sidebar {
+    width: var(--sidebar-w); background: var(--surface);
+    padding: 20px 16px; display: flex; flex-direction: column;
+    gap: 4px; position: fixed; top: 0; left: 0; height: 100vh;
+    overflow-y: auto; z-index: 10;
+}
+
+#sidebar .player-card {
+    text-align: center; padding: 12px 0;
+    border-bottom: 1px solid var(--surface2); margin-bottom: 8px;
+}
+
+#sidebar .player-avatar { font-size: 32px; margin-bottom: 4px; }
+#sidebar .player-name { font-size: 16px; font-weight: 600; color: var(--text); }
+#sidebar .player-level { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+#sidebar .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius);
+    cursor: pointer; color: var(--text-dim); text-decoration: none;
+    transition: background 0.15s, color 0.15s; font-size: 14px;
+}
+
+#sidebar .nav-item:hover, #sidebar .nav-item.active { background: var(--surface2); color: var(--text); }
+
+/* XP Bar */
+.xp-bar {
+    width: 100%; height: 6px; background: var(--surface2);
+    border-radius: 3px; overflow: hidden; margin-top: 8px;
+}
+.xp-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 3px; transition: width 0.3s ease;
+}
+
+/* Main content area */
+#main {
+    margin-left: var(--sidebar-w); flex: 1; padding: 24px 32px;
+}
+
+/* Page visibility */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Toast notifications */
+#toast-container {
+    position: fixed; top: 16px; right: 16px; z-index: 1000;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+    padding: 12px 20px; border-radius: var(--radius);
+    color: #fff; font-size: 14px; font-weight: 500;
+    animation: toast-in 0.3s ease; min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.toast-info { background: var(--accent2); }
+.toast-success { background: var(--correct); }
+.toast-error { background: var(--wrong); }
+.toast-warning { background: var(--accent); color: #1e293b; }
+@keyframes toast-in {
+    from { opacity: 0; transform: translateX(100%); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Modal overlay */
+#modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 500;
+    display: flex; align-items: center; justify-content: center;
+}
+.modal-box {
+    background: var(--surface); border-radius: var(--radius-lg);
+    padding: 24px; min-width: 320px; max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.modal-box h2 { margin-bottom: 12px; font-size: 18px; }
+.modal-box p { margin-bottom: 16px; color: var(--text-dim); font-size: 14px; }
+.modal-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-buttons button {
+    padding: 8px 16px; border: none; border-radius: var(--radius);
+    cursor: pointer; font-size: 14px; font-weight: 500;
+}
+
+/* Welcome screen */
+.welcome-screen {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 60vh; text-align: center;
+}
+.welcome-screen h1 { font-size: 36px; margin-bottom: 8px; }
+.welcome-screen p { color: var(--text-dim); margin-bottom: 24px; font-size: 16px; }
+.welcome-screen form { display: flex; flex-direction: column; gap: 12px; width: 280px; }
+.welcome-screen input {
+    padding: 12px 16px; border: 1px solid var(--surface2);
+    border-radius: var(--radius); background: var(--surface);
+    color: var(--text); font-size: 15px; outline: none;
+}
+.welcome-screen input:focus { border-color: var(--accent); }
+.welcome-screen button {
+    padding: 12px; border: none; border-radius: var(--radius);
+    background: var(--accent); color: #1e293b; font-size: 16px;
+    font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+}
+.welcome-screen button:hover { opacity: 0.9; }
