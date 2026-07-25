@@ -306,3 +306,105 @@ body { display: flex; min-height: 100vh; }
     cursor: pointer; transition: opacity 0.15s; white-space: nowrap;
 }
 .due-item .btn-attack:hover { opacity: 0.9; }
+
+/* ─── Task Board (冒险者任务板) ──────────────────────────────────── */
+.quest-section {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.quest-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.quest-card {
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid var(--surface2);
+    transition: border-color 0.15s, opacity 0.3s;
+}
+
+.quest-card:hover {
+    border-color: var(--accent);
+}
+
+.quest-card.quest-done {
+    opacity: 0.6;
+    border-color: var(--correct);
+}
+
+.quest-card.quest-done:hover {
+    border-color: var(--correct);
+}
+
+.quest-content {
+    flex: 1;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.quest-reward {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.quest-timer {
+    font-size: 13px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    padding: 2px 10px;
+    background: var(--surface2);
+    border-radius: 12px;
+}
+
+.btn-complete {
+    padding: 8px 20px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--correct);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.btn-complete:hover {
+    opacity: 0.85;
+}
+
+.quest-done-badge {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--correct);
+    white-space: nowrap;
+}
+
+.streak-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #f97316, #ef4444);
+    color: #fff;
+    padding: 2px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-left: 8px;
+    vertical-align: middle;
+}
