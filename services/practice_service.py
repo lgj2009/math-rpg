@@ -1,8 +1,13 @@
+import json
 from database import get_db
 from services.player_service import spend_energy, award_xp, get_player
 from services.gacha_service import roll_gacha
 from services.question_service import get_questions_for_module, generate_session_id
 import config
+
+# In-memory session store: session_id -> {focus_cost, ...}
+# Populated by start_practice, consumed by submit_practice.
+_sessions: dict[str, dict] = {}
 
 
 def start_practice(player_id: int, module_id: int, count: int = 10) -> dict | None:
@@ -20,6 +25,9 @@ def start_practice(player_id: int, module_id: int, count: int = 10) -> dict | No
 
     db = get_db()
     mod = db.execute("SELECT name FROM modules WHERE id=?", (module_id,)).fetchone()
+
+    # Cache session metadata for submit_practice to consume
+    _sessions[session_id] = {"focus_cost": cost}
 
     return {
         "session_id": session_id,
@@ -44,11 +52,10 @@ def submit_practice(
     question_ids = [a["question_id"] for a in answers]
     placeholders = ",".join("?" * len(question_ids))
     rows = db.execute(
-        f"SELECT id, answer, difficulty, type FROM questions WHERE id IN ({placeholders})",
+        f"SELECT id, answer FROM questions WHERE id IN ({placeholders})",
         question_ids,
     ).fetchall()
     answer_map = {r["id"]: r["answer"] for r in rows}
-    type_map = {r["id"]: r["type"] for r in rows}
 
     # Grade
     total = len(answers)
@@ -59,17 +66,29 @@ def submit_practice(
 
     accuracy = correct_count / total if total > 0 else 0
 
-    # Record practice in history
+    # Record practice in history (includes session_id + answered question IDs)
     db.execute(
-        """INSERT INTO practice_records (player_id, module_id, total_questions, correct_count, time_used_sec)
-           VALUES (?,?,?,?,?)""",
-        (player_id, module_id, total, correct_count, time_used_sec),
+        """INSERT INTO practice_records
+               (player_id, module_id, total_questions, correct_count,
+                time_used_sec, session_id, answered_question_ids)
+           VALUES (?,?,?,?,?,?,?)""",
+        (
+            player_id,
+            module_id,
+            total,
+            correct_count,
+            time_used_sec,
+            session_id,
+            json.dumps(question_ids),
+        ),
     )
     db.commit()
 
-    # Spend energy (re-calculate cost from question types)
-    cost = sum(config.FOCUS_COSTS.get(type_map.get(q_id, ""), 2) for q_id in question_ids)
-    spend_energy(player_id, cost)
+    # Spend energy (use focus_cost cached from start_practice)
+    session_data = _sessions.pop(session_id, {})
+    cost = session_data.get("focus_cost", 0)
+    if cost:
+        spend_energy(player_id, cost)
 
     # Award XP
     base_xp = total * config.XP_PER_QUESTION
@@ -82,7 +101,7 @@ def submit_practice(
 
     # Gacha roll
     p = get_player(player_id)
-    streak_bonus = (p["streak_days"] >= 7) if p else False
+    streak_bonus = p["streak_days"] >= 7
     gacha = roll_gacha(player_id, streak_bonus=streak_bonus)
 
     return {

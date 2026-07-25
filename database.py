@@ -138,6 +138,8 @@ def init_db():
             total_questions INTEGER NOT NULL,
             correct_count INTEGER NOT NULL,
             time_used_sec INTEGER,
+            session_id TEXT,
+            answered_question_ids TEXT DEFAULT '[]',
             practice_date TEXT DEFAULT (datetime('now'))
         )""",
 
@@ -234,6 +236,16 @@ def init_db():
     ]
     for sql in tables:
         cur.execute(sql)
+
+    # Migration: add columns that may not exist in older databases
+    for col_sql in [
+        "ALTER TABLE practice_records ADD COLUMN session_id TEXT",
+        "ALTER TABLE practice_records ADD COLUMN answered_question_ids TEXT DEFAULT '[]'",
+    ]:
+        try:
+            cur.execute(col_sql)
+        except sqlite3.OperationalError:
+            pass  # column already exists
 
     # Unique index for INSERT OR IGNORE idempotency in seed_data.py
     cur.execute(
