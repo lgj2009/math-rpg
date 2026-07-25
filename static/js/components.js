@@ -16,11 +16,15 @@ const Components = {
     },
 
     bossCard(spot) {
-        // Renders a blind_spot as a monster card with HP bar — placeholder
-        return `<div class="boss-card">
-            <div class="boss-name">${spot.question_type || 'Unknown'} Boss</div>
-            <div class="boss-hp-bar"><div class="boss-hp-fill" style="width:${spot.hp_pct || 100}%"></div></div>
-            <div class="boss-hp-text">${spot.hp || '???'} HP</div>
+        const hpPct = spot.hp_total > 0 ? (spot.hp_current / spot.hp_total) * 100 : 0;
+        const hpColor = hpPct > 50 ? 'var(--correct)' : hpPct > 25 ? 'var(--accent)' : 'var(--wrong)';
+        return `<div class="boss-card boss-${spot.boss_type || 'normal'}">
+            <div class="boss-icon">🐉</div>
+            <div class="boss-name">${spot.name}</div>
+            <div class="boss-hp-bar"><div class="boss-hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
+            <div class="boss-hp-text">HP: ${spot.hp_current}/${spot.hp_total}</div>
+            <div class="boss-defeats">🏆 同类击败: ${spot.defeat_count || 0}</div>
+            <button class="btn-attack" onclick="mistakes.attackBoss(${spot.id})">⚔️ 攻击</button>
         </div>`;
     },
 
