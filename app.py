@@ -2,11 +2,14 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from database import init_db
+from routers.players import router as players_router
 
 app = FastAPI(title="Math RPG")
 
 static_dir = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+app.include_router(players_router)
 
 
 @app.on_event("startup")
