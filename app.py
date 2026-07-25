@@ -7,6 +7,7 @@ from routers.practice import router as practice_router
 from routers.mistakes import router as mistakes_router
 from routers.blind_spots import router as blind_spots_router
 from routers.tasks import router as tasks_router
+from routers.stats import router as stats_router
 
 app = FastAPI(title="Math RPG")
 
@@ -18,6 +19,7 @@ app.include_router(practice_router)
 app.include_router(mistakes_router)
 app.include_router(blind_spots_router)
 app.include_router(tasks_router)
+app.include_router(stats_router)
 
 
 @app.on_event("startup")
