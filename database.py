@@ -234,5 +234,11 @@ def init_db():
     ]
     for sql in tables:
         cur.execute(sql)
+
+    # Unique index for INSERT OR IGNORE idempotency in seed_data.py
+    cur.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_concept_deps_unique "
+        "ON concept_dependencies(concept_name, COALESCE(parent_concept, ''))"
+    )
     conn.commit()
     conn.close()
