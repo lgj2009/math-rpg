@@ -78,14 +78,25 @@ const App = {
             let html = text;
             let changed = false;
 
-            // Replace $...$ with rendered KaTeX
-            if (text.includes('$')) {
+            // Replace $$...$$ (display math) first, then $...$ (inline math)
+            if (text.includes('$$')) {
+                const displayRegex = /\$\$([^$]+)\$\$/g;
+                let dm;
+                while ((dm = displayRegex.exec(text)) !== null) {
+                    try {
+                        const rendered = katex.renderToString(dm[1].trim(), { throwOnError: false, displayMode: true });
+                        html = html.replace(dm[0], rendered);
+                        changed = true;
+                    } catch(e) {}
+                }
+            }
+            if (html.includes('$')) {
                 const regex = /\$([^$]+)\$/g;
                 let m;
-                while ((m = regex.exec(text)) !== null) {
+                while ((m = regex.exec(html)) !== null) {
                     const latex = m[1].trim();
-                    // Skip bare function names — KaTeX renders them as "undefined"
-                    if (/^\\(sin|cos|tan|cot|sec|csc|log|ln|lim|max|min|sup|inf|det|gcd|Pr)\s*$/.test(latex)) {
+                    const bareCmds = /^\\(sin|cos|tan|cot|sec|csc|log|ln|lim|max|min|sup|inf|det|gcd|Pr|mathbb|mathbf|mathit|mathrm|textrm|text|vec|bar|hat|dot|ddot|widetilde|widehat|overline|underline|overrightarrow|overleftarrow)\s*$/;
+                    if (bareCmds.test(latex)) {
                         html = html.replace(m[0], latex.replace(/\\/g, ''));
                         changed = true;
                         continue;
