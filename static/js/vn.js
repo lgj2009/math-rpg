@@ -47,8 +47,6 @@ const VN = {
         const textEl = document.getElementById('vn-text');
         const choicesEl = document.getElementById('vn-choices');
         const quizEl = document.getElementById('vn-quiz');
-        const leftEl = document.getElementById('vn-char-left');
-        const rightEl = document.getElementById('vn-char-right');
         const canvasEmbed = document.getElementById('vn-canvas-embed');
         const indicator = document.querySelector('.vn-indicator');
 
