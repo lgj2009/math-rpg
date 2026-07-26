@@ -169,7 +169,7 @@ const learn = {
         const ctx = canvas.getContext('2d');
         const W = canvas.width, H = canvas.height;
         const info = document.getElementById('visual-info');
-        let animId;
+        let dragging = false, xB = 3.5, hasDragged = false;
 
         // Curve: y = x², mapped to canvas coordinates
         const fx = (x) => x * x;
@@ -213,93 +213,87 @@ const learn = {
             ctx.fillText('y = x²', toCanvasX(3.2), toCanvasY(fx(3.2))-10);
         };
 
-        // Animation: B approaches A
-        const xA = 1, yA = fx(1);
-        let t = 0; // 0 → 1, where t=1 means B=A (full approach)
+        const xA = 1, yA = 1;
+        const fromCanvasX = (cx) => (cx - 80) / 100;
 
-        const drawFrame = () => {
-            ctx.clearRect(0, 0, W, H);
-            drawGrid();
-            drawCurve();
+        const draw = () => {
+            ctx.clearRect(0,0,W,H);
+            drawGrid(); drawCurve();
+            const bx = toCanvasX(xB), by = toCanvasY(fx(xB));
+            const dxB = xB - xA, slope = dxB > 0.005 ? (fx(xB)-1)/dxB : 2;
 
-            // Point A (fixed)
-            const ax = toCanvasX(xA), ay = toCanvasY(yA);
+            // Point A
             ctx.fillStyle = '#f59e0b'; ctx.beginPath();
-            ctx.arc(ax, ay, 6, 0, Math.PI*2); ctx.fill();
+            ctx.arc(toCanvasX(xA), toCanvasY(yA), 7, 0, Math.PI*2); ctx.fill();
             ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 13px system-ui';
-            ctx.fillText('A(1,1)', ax+10, ay-10);
+            ctx.fillText('A(1,1)', toCanvasX(xA)+12, toCanvasY(yA)-10);
 
-            // Point B (approaches A as t increases)
-            const xB = xA + 2.5 * (1 - t); // starts at x=3.5, ends at x=1
-            const yB = fx(xB);
-            const bx = toCanvasX(xB), by = toCanvasY(yB);
-            const dxB = xB - xA;
+            // Point B — draggable
             ctx.fillStyle = '#3b82f6'; ctx.beginPath();
-            ctx.arc(bx, by, 5, 0, Math.PI*2); ctx.fill();
-            // Only show B label when it's not too close to A
-            if (dxB > 0.15) {
+            ctx.arc(bx, by, 7, 0, Math.PI*2); ctx.fill();
+            if (dxB > 0.12) {
                 ctx.fillStyle = '#3b82f6'; ctx.font = 'bold 13px system-ui';
-                ctx.fillText(`B(${xB.toFixed(2)},${yB.toFixed(2)})`, bx+10, by-10);
+                ctx.fillText(`B(${xB.toFixed(2)},${fx(xB).toFixed(2)})`, bx+12, by-10);
             }
+            ctx.strokeStyle = 'rgba(59,130,246,0.5)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(bx, by, 14, 0, Math.PI*2); ctx.stroke();
 
-            // Secant line AB
-            if (dxB > 0.02) {
-                // Extend secant line beyond A and B
-                const extendLeft = toCanvasX(xA - 0.5);
-                const extendRight = toCanvasX(xB + 0.5);
-                const slope = (yB - yA) / dxB;
-                const yLeft = yA + slope * (-0.5);
-                const yRight = yB + slope * 0.5;
+            // Secant / Tangent
+            if (dxB > 0.005) {
+                const yLeft = yA + slope * (-0.5), yRight = fx(xB) + slope * 0.5;
                 ctx.strokeStyle = 'rgba(59,130,246,0.7)'; ctx.lineWidth = 2;
-                ctx.setLineDash([6, 3]);
-                ctx.beginPath();
-                ctx.moveTo(toCanvasX(xA - 0.5), toCanvasY(yLeft));
-                ctx.lineTo(toCanvasX(xB + 0.5), toCanvasY(yRight));
-                ctx.stroke();
+                ctx.setLineDash([6,3]); ctx.beginPath();
+                ctx.moveTo(toCanvasX(xA-0.5), toCanvasY(yLeft));
+                ctx.lineTo(toCanvasX(xB+0.5), toCanvasY(yRight)); ctx.stroke();
                 ctx.setLineDash([]);
-                // Slope label
                 ctx.fillStyle = '#3b82f6'; ctx.font = '12px system-ui';
-                const slopeText = `割线斜率 = ${slope.toFixed(2)}`;
-                ctx.fillText(slopeText, toCanvasX(2), toCanvasY(fx(2))+30);
-                const dxText = `Δx = ${dxB.toFixed(2)}`;
-                ctx.fillText(dxText, toCanvasX(2), toCanvasY(fx(2))+48);
+                ctx.fillText(`割线斜率 = ${slope.toFixed(3)}`, toCanvasX(2), toCanvasY(fx(2))+30);
+                ctx.fillText(`Δx = ${dxB.toFixed(3)}`, toCanvasX(2), toCanvasY(fx(2))+48);
             } else {
-                // Tangent line at A
-                const slope = 2 * xA; // f'(1) = 2
-                const yLeft = yA + slope * (-0.5);
-                const yRight = yA + slope * 3;
-                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(toCanvasX(xA - 0.5), toCanvasY(yLeft));
-                ctx.lineTo(toCanvasX(xA + 3), toCanvasY(yRight));
-                ctx.stroke();
-                ctx.fillStyle = '#ef4444'; ctx.font = 'bold 13px system-ui';
-                ctx.fillText('切线斜率 = 2', toCanvasX(2), toCanvasY(fx(2))+30);
-                ctx.fillText("这就是 f'(1)", toCanvasX(2), toCanvasY(fx(2))+50);
+                const yLeft = 1 + 2*(-0.5), yRight = 1 + 2*3;
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3; ctx.beginPath();
+                ctx.moveTo(toCanvasX(xA-0.5), toCanvasY(yLeft));
+                ctx.lineTo(toCanvasX(xA+3), toCanvasY(yRight)); ctx.stroke();
+                ctx.fillStyle = '#ef4444'; ctx.font = 'bold 14px system-ui';
+                ctx.fillText("切线斜率 = 2 = f'(1)", toCanvasX(1.5), toCanvasY(fx(2))+30);
             }
 
-            // Update info
+            if (!hasDragged) {
+                ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '13px system-ui';
+                ctx.fillText('👆 拖动蓝点', toCanvasX(1.5), H-16);
+            }
+
             if (info) {
-                if (dxB > 0.02) {
-                    info.innerHTML = `<span style="color:#3b82f6">🔵 B 点向 A 点靠近中...</span> Δx = ${dxB.toFixed(3)} | 割线斜率 = ${((yB-yA)/dxB).toFixed(3)}`;
-                } else {
-                    info.innerHTML = `<span style="color:#ef4444">🔴 B 与 A 重合！</span> 割线变成了 <b>切线</b>，斜率 = <b>2</b> ← 这就是导数 f'(1)`;
-                }
+                if (dxB > 0.02) info.innerHTML = `<span style="color:#3b82f6">拖拽 B 点</span> — Δx=${dxB.toFixed(3)} — 割线斜率=${slope.toFixed(3)}`;
+                else if (dxB > 0.003) info.innerHTML = `<span style="color:#f59e0b">越来越近！</span> 斜率 → ${slope.toFixed(3)}`;
+                else info.innerHTML = `<span style="color:#ef4444">B=A！切线斜率 = <b>2</b></span> ← f'(1)`;
             }
-
-            // Advance animation
-            t += 0.005;
-            if (t >= 1) t = 1;
-            animId = requestAnimationFrame(drawFrame);
         };
 
-        // Replay button
-        const replay = () => { t = 0; };
-        canvas.onclick = replay;
-        if (info) info.style.cursor = 'pointer';
-        if (info) info.onclick = replay;
+        canvas.onmousedown = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = fromCanvasX((e.clientX-rect.left)*(W/rect.width));
+            const my = (H-60-(e.clientY-rect.top)*(H/rect.height))/22;
+            if (Math.abs(mx-xB) < 0.3 && Math.abs(my-fx(xB)) < 1.5) { dragging = true; hasDragged = true; canvas.style.cursor = 'grabbing'; }
+        };
+        canvas.onmousemove = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = fromCanvasX((e.clientX-rect.left)*(W/rect.width));
+            if (dragging) { xB = Math.max(1.001, Math.min(4, mx)); draw(); }
+            else { const my = (H-60-(e.clientY-rect.top)*(H/rect.height))/22; canvas.style.cursor = Math.abs(mx-xB)<0.3&&Math.abs(my-fx(xB))<1.5?'grab':'default'; }
+        };
+        canvas.onmouseup = () => { dragging = false; };
+        canvas.onmouseleave = () => { dragging = false; };
+        canvas.ontouchstart = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = fromCanvasX((e.touches[0].clientX-rect.left)*(W/rect.width));
+            if (Math.abs(mx-xB) < 0.5) { dragging = true; hasDragged = true; e.preventDefault(); }
+        };
+        canvas.ontouchmove = (e) => {
+            if (dragging) { const rect = canvas.getBoundingClientRect(); xB = Math.max(1.001, Math.min(4, fromCanvasX((e.touches[0].clientX-rect.left)*(W/rect.width)))); draw(); e.preventDefault(); }
+        };
+        canvas.ontouchend = () => { dragging = false; };
 
-        drawFrame();
-        this._visualCleanup = () => cancelAnimationFrame(animId);
+        draw();
     },
 };
