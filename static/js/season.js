@@ -66,8 +66,8 @@ const season = {
                 </div>` : ''}
 
                 <div class="sp-track-label">
-                    <span>🎁 免费奖励</span>
-                    <span style="color:var(--purple)">💎 付费奖励</span>
+                    <span>🎁 赛季奖励</span>
+                    <span style="color:var(--text-muted);font-size:11px">Demo 模式 · 全部免费</span>
                 </div>
 
                 <div class="sp-track">${trackHTML}</div>
