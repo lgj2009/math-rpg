@@ -81,7 +81,7 @@ RICH_LESSONS = {
 
 "二倍角公式": {
     "hook": "如果和差角公式是三角函数运算的'加减法'，那二倍角公式就是'乘法'。你不需要重新推导——只要在和差角公式中让 $\\beta=\\alpha$ 就行了。但它的威力远不止于此：它是连接'一次角'和'二次角'的桥梁。",
-    "intuition": "二倍角公式的核心洞见：**$\\sin 2\\alpha$ 变成了 $\\sin\\alpha$ 和 $\\cos\\alpha$ 的乘积**——这意味着二次的东西可以降为一次。反过来，$\\sin^2\\alpha = \\frac{1-\\cos 2\\alpha}{2}$ 可以把平方降掉。\n\n$\\cos 2\\alpha$ 的三种形式是最灵活的：\n- $\\cos^2\\alpha - \\sin^2\\alpha$（对称形式，好记）\n- $2\\cos^2\\alpha - 1$（只含 $\\cos$，用于升幂）\n- $1 - 2\\sin^2\\alpha$（只含 $\\sin$，用于降幂）\n\n选哪种形式取决于题目给了 $\\sin$ 还是 $\\cos$。",
+    "intuition": "二倍角公式的核心洞见：**$\\sin 2\\alpha$ 变成了 $\\sin\\alpha$ 和 $\\cos\\alpha$ 的乘积**——这意味着二次的东西可以降为一次。反过来，$\\sin^2\\alpha = \\frac{1-\\cos 2\\alpha}{2}$ 可以把平方降掉。\n\n$\\cos 2\\alpha$ 的三种形式是最灵活的：\n- $\\cos^2\\alpha - \\sin^2\\alpha$（对称形式，好记）\n- $2\\cos^2\\alpha - 1$（只含 cos，用于升幂）\n- $1 - 2\\sin^2\\alpha$（只含 sin，用于降幂）\n\n选哪种形式取决于题目给了 sin 还是 cos。",
     "core": "**核心思想**：用已知的单角三角函数表示二倍角的三角函数。反向使用则是把平方项降次。\n\n**降幂公式（超级重要！）**：$\\sin^2\\alpha = \\frac{1-\\cos 2\\alpha}{2}$，$\\cos^2\\alpha = \\frac{1+\\cos 2\\alpha}{2}$",
     "formula": "\\sin 2\\alpha = 2\\sin\\alpha\\cos\\alpha \\\\\n\\cos 2\\alpha = \\cos^2\\alpha - \\sin^2\\alpha = 2\\cos^2\\alpha - 1 = 1 - 2\\sin^2\\alpha \\\\\n\\tan 2\\alpha = \\frac{2\\tan\\alpha}{1-\\tan^2\\alpha} \\\\\n\\text{（降幂）}\\quad \\sin^2\\alpha = \\frac{1-\\cos 2\\alpha}{2},\\quad \\cos^2\\alpha = \\frac{1+\\cos 2\\alpha}{2}",
     "derivation": "在和角公式 $\\sin(\\alpha+\\beta) = \\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta$ 中令 $\\beta=\\alpha$ 即得 $\\sin 2\\alpha = 2\\sin\\alpha\\cos\\alpha$。类似得 $\\cos 2\\alpha = \\cos^2\\alpha - \\sin^2\\alpha$。由 $\\sin^2\\alpha+\\cos^2\\alpha=1$ 替换即得另外两种形式。对于降幂公式，从 $\\cos 2\\alpha = 1-2\\sin^2\\alpha$ 解出 $\\sin^2\\alpha = \\frac{1-\\cos 2\\alpha}{2}$。",

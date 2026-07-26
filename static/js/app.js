@@ -83,8 +83,15 @@ const App = {
                 const regex = /\$([^$]+)\$/g;
                 let m;
                 while ((m = regex.exec(text)) !== null) {
+                    const latex = m[1].trim();
+                    // Skip bare function names — KaTeX renders them as "undefined"
+                    if (/^\\(sin|cos|tan|cot|sec|csc|log|ln|lim|max|min|sup|inf|det|gcd|Pr)\s*$/.test(latex)) {
+                        html = html.replace(m[0], latex.replace(/\\/g, ''));
+                        changed = true;
+                        continue;
+                    }
                     try {
-                        const rendered = katex.renderToString(m[1], { throwOnError: false });
+                        const rendered = katex.renderToString(latex, { throwOnError: false });
                         html = html.replace(m[0], rendered);
                         changed = true;
                     } catch(e) {}
