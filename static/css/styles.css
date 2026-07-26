@@ -804,6 +804,29 @@ strong.hl { color: var(--gold); font-weight: 800; background: linear-gradient(18
 .feed-time { font-size: 10px; color: var(--text-muted); margin-left: auto; }
 .guild-boss { max-width: 400px; margin: 0 auto; text-align: center; }
 
+/* ── Achievements ── */
+.achieve-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.achieve-card { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s ease; }
+.achieve-card.unlocked { border-color: rgba(240,180,41,0.2); }
+.achieve-card.locked { opacity: 0.5; }
+.achieve-icon { font-size: 32px; margin-bottom: 8px; }
+.achieve-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.achieve-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.achieve-rarity { font-size: 10px; font-weight: 700; margin-top: 6px; letter-spacing: 0.06em; }
+
+/* ── Season Pass ── */
+.st-container { position: relative; padding-left: 60px; min-height: 600px; }
+.st-wrapper { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; position: relative; }
+.st-node { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid var(--surface2); background: var(--bg-surface); flex-shrink: 0; }
+.st-node.unlocked { border-color: var(--gold); background: rgba(240,180,41,0.1); }
+.st-node.claimed { border-color: var(--emerald); background: rgba(34,197,94,0.1); }
+.st-node.locked { opacity: 0.4; }
+.st-label { min-width: 60px; display: flex; flex-direction: column; }
+.st-rewards { display: flex; gap: 8px; flex: 1; }
+.st-reward { font-size: 12px; padding: 4px 10px; border-radius: 12px; }
+.st-reward.free { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+.st-reward.premium { background: rgba(139,92,246,0.12); color: var(--purple); }
+
 .btn-danger { background: var(--ruby); color: #fff; border: none; padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-weight: 700; }
 
 /* ── Feedback Form ── */
