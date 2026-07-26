@@ -122,14 +122,16 @@ const learn = {
                 {id:4, title: l.layer4_title || '🔗 在数学大厦中的位置', body: l.layer4, color: 'green'},
                 {id:5, title: l.layer5_title || '🛠️ 怎么用？', body: l.layer5, color: 'red'},
             ];
-            let layersHTML = layers.map((ly, i) => `
-                <div class="deep-layer layer-${ly.id} locked" id="deep-layer${ly.id}">
+            let layersHTML = layers.map((ly, i) => {
+                const hint = i === 0 ? '点击解锁' : `需要先解锁上一层`;
+                return `<div class="deep-layer layer-${ly.id} locked" id="deep-layer${ly.id}">
                     <div class="deep-layer-title" onclick="learn._unlockLayer(${ly.id})">
                         <span class="layer-lock">🔒</span> ${ly.title}
-                        <span class="layer-hint">点击解锁</span>
+                        <span class="layer-hint">${hint}</span>
                     </div>
                     <div class="deep-layer-body" style="display:none">${hl(ly.body).replace(/\n/g, '<br>')}</div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
 
             el.innerHTML = `<div class="lesson lesson-deep">
                 <div class="lesson-header-row">
@@ -137,7 +139,6 @@ const learn = {
                 </div>
                 ${layersHTML}
                 ${l.formula ? `<div class="lesson-section"><h4>📐 公式</h4><div class="lesson-formula">$$${l.formula}$$</div></div>` : ''}
-                ${l.visual ? `<div class="lesson-visual"><canvas id="visual-canvas" width="560" height="360"></canvas><div id="visual-info"></div></div>` : ''}
                 <div class="lesson-section"><h4>💡 例题</h4>${examplesHTML}</div>
                 <div class="lesson-section"><h4>⚠️ 常见错误</h4>${l.traps.map(t => `<div class="lesson-trap">• ${t}</div>`).join('')}</div>
                 ${l.children && l.children.length ? `<div class="lesson-section"><h4>📎 进阶</h4><div class="learn-children">${l.children.map(c => `<span class="learn-child-link" onclick="learn._selectConcept('${c}')">→ ${c}</span>`).join('')}</div></div>` : ''}
@@ -177,8 +178,15 @@ const learn = {
     _unlockLayer(id) {
         const layer = document.getElementById(`deep-layer${id}`);
         if (!layer) return;
+        // Check prerequisite: previous layer must be unlocked first
+        if (id > 1) {
+            const prev = document.getElementById(`deep-layer${id-1}`);
+            if (prev && prev.classList.contains('locked')) {
+                App.toast('请先解锁上一层', 'warning');
+                return;
+            }
+        }
         const body = layer.querySelector('.deep-layer-body');
-        const title = layer.querySelector('.deep-layer-title');
         const lock = layer.querySelector('.layer-lock');
         const hint = layer.querySelector('.layer-hint');
         if (layer.classList.contains('locked')) {
@@ -187,9 +195,12 @@ const learn = {
             if (body) body.style.display = 'block';
             if (lock) lock.textContent = '🔓';
             if (hint) hint.textContent = '已解锁';
-            // Scroll to the revealed content
             body.scrollIntoView({ behavior: 'smooth', block: 'center' });
             App.renderMath(body);
+            // If this is layer 3, init the canvas
+            if (id === 3) {
+                setTimeout(() => this._animateSecantToTangent(), 400);
+            }
         }
     },
 
