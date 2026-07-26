@@ -50,6 +50,11 @@ const settings = {
                 <div class="setting-item"><span>${t('settings_reset')}</span><button class="btn-danger" onclick="if(confirm('${t('settings_reset_confirm')}')){localStorage.clear();location.reload();}">${t('settings_reset_btn')}</button></div>
             </div>
 
+            <h2 style="margin-top:32px">💎 会员中心</h2>
+            <div class="settings-panel" style="margin-top:12px" id="membership-panel">
+                <div class="loading">加载中...</div>
+            </div>
+
             <h2 style="margin-top:32px">${t('settings_feedback')}</h2>
             <div class="settings-panel" style="margin-top:12px">
                 <div class="feedback-form">
@@ -66,6 +71,64 @@ const settings = {
                     </div>
                 </div>
             </div>`;
+        // Load membership data
+        this._loadMembership();
+    },
+
+    async _loadMembership() {
+        const p = App.state.player;
+        if (!p) return;
+        const panel = document.getElementById('membership-panel');
+        if (!panel) return;
+        try {
+            const data = await App.get(`/membership/${p.id}`);
+            const plans = await App.get('/membership/plans');
+            const planNames = { warrior: '战士版', legend: '传说版', lifetime: '永久版', free: '免费版' };
+            const billingNames = { monthly: '月付', yearly: '年付', lifetime: '永久' };
+
+            let plansHTML = Object.entries(plans).filter(([k]) => k !== 'free').map(([key, plan]) => {
+                const isCurrent = data.plan === key;
+                const price = plan.price_monthly > 0 ? `$${(plan.price_monthly/100).toFixed(2)}/月` : '';
+                const priceYearly = plan.price_yearly > 0 ? `$${(plan.price_yearly/100).toFixed(2)}/年` : '';
+                const priceLifetime = plan.price_lifetime > 0 ? `$${(plan.price_lifetime/100).toFixed(2)} 永久` : '';
+                const feats = plan.features.filter((_, i) => i < plan.features.length/3).map(f => f).join('<br>');
+                return `<div class="membership-card ${isCurrent ? 'current' : ''}" style="border-color:${plan.color}">
+                    <div class="membership-icon">${plan.icon}</div>
+                    <div class="membership-name" style="color:${plan.color}">${plan.name}</div>
+                    <div class="membership-price">${price}<br>${priceYearly}<br>${priceLifetime}</div>
+                    <div class="membership-feats">${feats}</div>
+                    ${isCurrent ? '<div class="sp-claimed-badge">✅ 当前方案</div>' :
+                      `<select id="billing-${key}" style="margin:8px 0;padding:6px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:var(--bg-field);color:var(--text-primary);font-size:12px;width:100%">
+                        ${plan.price_monthly > 0 ? '<option value="monthly">月付 $'+(plan.price_monthly/100).toFixed(2)+'</option>' : ''}
+                        ${plan.price_yearly > 0 ? '<option value="yearly">年付 $'+(plan.price_yearly/100).toFixed(2)+'</option>' : ''}
+                        ${plan.price_lifetime > 0 ? '<option value="lifetime">永久 $'+(plan.price_lifetime/100).toFixed(2)+'</option>' : ''}
+                      </select>
+                      <button class="btn-primary" onclick="settings._upgrade('${key}')" style="width:100%">升级</button>`}
+                </div>`;
+            }).join('');
+
+            panel.innerHTML = `
+                <div style="margin-bottom:16px">
+                    <span style="font-size:14px;font-weight:700">当前: ${data.icon} ${data.name}</span>
+                    ${data.expires_at ? `<span style="font-size:12px;color:var(--text-secondary);margin-left:8px">到期: ${data.expires_at.slice(0,10)}</span>` : ''}
+                </div>
+                <div class="membership-grid">${plansHTML}</div>
+                <div style="margin-top:12px;font-size:11px;color:var(--text-muted);text-align:center">
+                    ⚠️ 当前为演示模式。上线前需在 config.py 配置 Stripe 密钥。
+                </div>`;
+        } catch (e) { panel.innerHTML = '<div class="error">加载失败</div>'; }
+    },
+
+    async _upgrade(plan) {
+        const billingEl = document.getElementById(`billing-${plan}`);
+        const billing = billingEl ? billingEl.value : 'monthly';
+        try {
+            const result = await App.post('/membership/checkout', {
+                player_id: App.state.player.id, plan, billing
+            });
+            if (result.url) window.open(result.url, '_blank');
+            else App.toast('支付接口未配置', 'warning');
+        } catch (e) { App.toast(e.message, 'error'); }
     },
 
     _switchLang(lang) {

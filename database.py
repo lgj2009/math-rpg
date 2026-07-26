@@ -292,6 +292,15 @@ def init_db():
         created_at TEXT DEFAULT (datetime('now'))
     )""")
 
+    # Membership table
+    cur.execute("""CREATE TABLE IF NOT EXISTS user_memberships (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        player_id INTEGER NOT NULL,
+        plan TEXT NOT NULL DEFAULT 'free',
+        expires_at TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+    )""")
+
     # Auth tables
     cur.execute("""CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

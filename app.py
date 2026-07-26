@@ -16,6 +16,7 @@ from routers.auth import router as auth_router
 from routers.guild import router as guild_router
 from routers.achieve import router as achieve_router
 from routers.seasons import router as seasons_router_new
+from routers.membership import router as membership_router
 
 app = FastAPI(title="Math RPG")
 
@@ -36,6 +37,7 @@ app.include_router(auth_router)
 app.include_router(guild_router)
 app.include_router(achieve_router)
 app.include_router(seasons_router_new)
+app.include_router(membership_router)
 
 
 @app.on_event("startup")
