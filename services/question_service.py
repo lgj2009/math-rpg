@@ -43,6 +43,7 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10, la
             pass
 
     # --- Fetch ALL available questions matching difficulty ---
+    # NO ORDER BY RANDOM() — we shuffle in Python for true randomness
     all_rows = db.execute(
         """
         SELECT id, module_id, type, difficulty, content, content_en, content_vi,
@@ -50,7 +51,6 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10, la
                solution, solution_en, solution_vi, time_limit_sec, source_type, source_ref
         FROM questions
         WHERE module_id = ? AND difficulty <= ?
-        ORDER BY RANDOM()
         """,
         (module_id, target_difficulty),
     ).fetchall()
@@ -64,17 +64,25 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10, la
         else:
             unanswered.append(r)
 
-    # Build result: prefer unanswered, fill with answered if needed
-    random.shuffle(unanswered)
-    random.shuffle(answered)
-    result = unanswered[:count]
-    if len(result) < count:
-        result.extend(answered[:count - len(result)])
+    # Shuffle aggressively with multiple passes for true randomness
+    for _ in range(3):
+        random.shuffle(unanswered)
+        random.shuffle(answered)
 
-    # Deduplicate by ID (safety net)
+    # If unanswered pool is big enough, ONLY use unanswered (no recycling)
+    if len(unanswered) >= count:
+        rows = unanswered[:count]
+    else:
+        # Fill gaps with answered questions
+        rows = unanswered[:]
+        needed = count - len(rows)
+        rows.extend(answered[:needed])
+
+    # Final shuffle + dedup
+    random.shuffle(rows)
     seen = set()
     unique = []
-    for r in result:
+    for r in rows:
         if r["id"] not in seen:
             seen.add(r["id"])
             unique.append(r)
