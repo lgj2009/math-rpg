@@ -234,6 +234,12 @@ document.addEventListener('click', () => {
     if (!_bgmStarted) { Audio.bgmStart(); _bgmStarted = true; }
 }, { once: true });
 
+// Auto-detect mobile and enable mobile mode
+if (window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent)) {
+    document.body.classList.add('mobile-mode');
+    document.getElementById('mode-toggle').textContent = '📱';
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     I18N.applyAll();
     const page = window.location.hash.slice(1) || 'dashboard';
