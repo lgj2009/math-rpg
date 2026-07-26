@@ -829,6 +829,124 @@ strong.hl { color: var(--gold); font-weight: 800; background: linear-gradient(18
 
 .btn-danger { background: var(--ruby); color: #fff; border: none; padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-weight: 700; }
 
+/* ═══════════════════════ Mobile Responsive ═══════════════════════ */
+#hamburger { display: none; position: fixed; top: 12px; left: 12px; z-index: 100; background: var(--bg-surface); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius); padding: 8px 12px; font-size: 20px; cursor: pointer; }
+
+@media (max-width: 768px) {
+    #hamburger { display: block; }
+
+    /* Sidebar — hidden by default, slide in when open */
+    #sidebar {
+        transform: translateX(-100%); transition: transform 0.3s ease;
+        width: 260px; z-index: 99;
+    }
+    #sidebar.open { transform: translateX(0); }
+
+    /* Main content full width */
+    #main { margin-left: 0 !important; padding: 16px 12px !important; max-width: 100%; }
+
+    /* Typography */
+    h1 { font-size: 22px; } h2 { font-size: 18px; } h3 { font-size: 15px; }
+
+    /* Module grid — 2 columns */
+    .module-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .module-card { padding: 16px 10px; }
+    .module-icon { font-size: 28px; }
+    .module-name { font-size: 12px; }
+
+    /* Stat tiles */
+    .stat-tiles { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-tile { padding: 14px 10px; }
+    .stat-value { font-size: 28px; }
+
+    /* Dashboard grid */
+    .dashboard-grid { grid-template-columns: 1fr; gap: 12px; }
+
+    /* Boss grid */
+    .boss-grid { grid-template-columns: 1fr; }
+
+    /* Quest cards */
+    .quest-card { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+    /* Question flow */
+    .question-flow { max-width: 100%; }
+    .question-card { padding: 16px; }
+
+    /* Combat screen */
+    .combat-screen { max-width: 100%; }
+    .boss-name-display { font-size: 15px; }
+
+    /* Result screen */
+    .result-big-number { font-size: 48px; }
+
+    /* Mistake cards */
+    .mc-header { flex-direction: column; align-items: flex-start; }
+
+    /* Learn layout */
+    .learn-concept-card { padding: 12px; }
+    .learn-concept-list { gap: 6px; }
+
+    /* Lesson */
+    .lesson { max-width: 100%; }
+    .lesson-hook { font-size: 13px; padding: 12px; }
+
+    /* Bank filters */
+    .bank-filters { flex-direction: column; }
+    .bank-filters select, .bank-filters input { width: 100%; }
+
+    /* VN Stage */
+    .vn-stage { min-height: 320px; }
+    .vn-sprite-emoji { font-size: 44px; }
+    .vn-dialog-box { padding: 12px 14px 10px; }
+    .vn-text { font-size: 14px; }
+    .vn-choice { font-size: 13px; padding: 10px 14px; }
+
+    /* Canvas max width */
+    canvas { max-width: 100% !important; height: auto !important; }
+
+    /* Toast */
+    #toast-container { top: 8px; right: 8px; left: 8px; }
+    .toast { min-width: auto; font-size: 12px; padding: 10px 14px; }
+
+    /* Modal */
+    .modal-box { min-width: auto; max-width: 90vw; padding: 20px; }
+
+    /* Welcome */
+    .welcome-screen h1 { font-size: 28px; }
+    .welcome-screen form { width: 100%; max-width: 300px; }
+
+    /* Settings */
+    .settings-panel { max-width: 100%; }
+
+    /* Guild */
+    .guild-create-form { flex-direction: column; }
+
+    /* Achievement grid */
+    .achieve-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Season */
+    .st-container { padding-left: 40px; }
+    .st-rewards { flex-direction: column; gap: 4px; }
+
+    /* Tab bar */
+    .tab-btn { font-size: 12px; padding: 8px 10px; }
+
+    /* Auth */
+    .auth-form { width: 100%; }
+
+    /* Buttons — larger touch targets */
+    .btn-primary, .btn-secondary, .btn-retry, .btn-attack, .btn-complete {
+        padding: 10px 18px; font-size: 14px; min-height: 40px;
+    }
+
+    /* Option labels — easier to tap */
+    .option-label { padding: 14px 12px; }
+
+    /* Combat actions */
+    .combat-actions { flex-wrap: wrap; gap: 8px; }
+    .combat-actions .btn-primary { flex: 1; }
+}
+
 /* ── Feedback Form ── */
 .feedback-form { display: flex; flex-direction: column; gap: 12px; }
 .fb-select {

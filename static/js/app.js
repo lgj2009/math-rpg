@@ -262,10 +262,21 @@ window.addEventListener('hashchange', () => {
     App.refreshPlayer();
 });
 
-// Nav clicks
+// Nav clicks — close sidebar on mobile
 document.getElementById('sidebar').addEventListener('click', (e) => {
     const nav = e.target.closest('.nav-item');
     if (!nav) return;
     e.preventDefault();
     App.navigate(nav.dataset.page);
+    // Close sidebar on mobile
+    if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+    }
+});
+
+// Close sidebar when clicking main content on mobile
+document.getElementById('main').addEventListener('click', () => {
+    if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+    }
 });
