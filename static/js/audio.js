@@ -27,7 +27,7 @@ const SFX = {
         else { this.bgmStart(); return true; }
     },
 
-    bgmStart() {
+    bgmStart(station = 'calm') {
         if (this._bgmOn) return;
         this._init();
         if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -35,23 +35,36 @@ const SFX = {
         this._bgmNodes = [];
 
         this._bgmGain = this.ctx.createGain();
-        this._bgmGain.gain.value = 0.30;
+        this._bgmGain.gain.value = 0.25;
         this._bgmGain.connect(this.ctx.destination);
 
-        // Jazzy 7th chords — lo-fi progression
-        const chords = [
-            [220, 262, 330, 392],  // Am7
-            [294, 349, 440, 523],  // Dm7
-            [196, 247, 330, 392],  // G7
-            [262, 330, 392, 494],  // Cmaj7
-        ];
-        const chordDur = 3.0;
+        // Station presets
+        const presets = {
+            calm: {
+                chords: [[220,262,330,392],[294,349,440,523],[196,247,330,392],[262,330,392,494]],
+                chordDur: 3.2, kickVol: 0.14, hatVol: 0.02, melVol: 0.05, tempo: 700,
+                melody: [523,587,659,523,440,494,523,392,440,523,587,659],
+                chordVol: [0.10, 0.05],
+            },
+            upbeat: {
+                chords: [[262,330,392],[330,415,494],[392,494,587],[349,440,523],[294,392,494],[262,330,392]],
+                chordDur: 2.0, kickVol: 0.22, hatVol: 0.03, melVol: 0.08, tempo: 400,
+                melody: [523,659,784,659,523,440,587,659,784,880,784,659],
+                chordVol: [0.12, 0.06],
+            },
+            lofi: {
+                chords: [[196,247,330],[262,330,392],[294,349,440],[330,392,494],[220,262,330],[196,294,349]],
+                chordDur: 3.8, kickVol: 0.10, hatVol: 0.015, melVol: 0.03, tempo: 900,
+                melody: [440,494,523,440,392,330,392,440,494,523,587,523],
+                chordVol: [0.08, 0.04],
+            },
+        };
+        const p = presets[station] || presets.calm;
 
         const playChord = (idx) => {
             if (!this._bgmOn) return;
-            const chord = chords[idx % chords.length];
+            const chord = p.chords[idx % p.chords.length];
             const t = this.ctx.currentTime;
-
             chord.forEach((freq, i) => {
                 const osc = this.ctx.createOscillator();
                 const g = this.ctx.createGain();
@@ -59,62 +72,48 @@ const SFX = {
                 osc.frequency.value = freq;
                 osc.detune.value = (Math.random() - 0.5) * 10;
                 g.gain.setValueAtTime(0, t);
-                g.gain.linearRampToValueAtTime(i === 0 ? 0.12 : 0.06, t + 0.8);
-                g.gain.linearRampToValueAtTime(i === 0 ? 0.08 : 0.04, t + chordDur - 0.3);
-                g.gain.linearRampToValueAtTime(0, t + chordDur + 0.1);
+                g.gain.linearRampToValueAtTime(p.chordVol[i] || 0.06, t + 0.8);
+                g.gain.linearRampToValueAtTime((p.chordVol[i] || 0.06) * 0.7, t + p.chordDur - 0.3);
+                g.gain.linearRampToValueAtTime(0, t + p.chordDur + 0.1);
                 osc.connect(g); g.connect(this._bgmGain);
-                osc.start(t); osc.stop(t + chordDur + 0.3);
+                osc.start(t); osc.stop(t + p.chordDur + 0.3);
                 this._bgmNodes.push(osc, g);
             });
-
-            // Lo-fi kick every other chord
             if (idx % 2 === 0) {
                 const kick = this.ctx.createOscillator();
                 const kg = this.ctx.createGain();
                 kick.type = 'sine'; kick.frequency.setValueAtTime(120, t);
                 kick.frequency.exponentialRampToValueAtTime(35, t + 0.12);
-                kg.gain.setValueAtTime(0.18, t);
+                kg.gain.setValueAtTime(p.kickVol, t);
                 kg.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
                 kick.connect(kg); kg.connect(this._bgmGain);
                 kick.start(t); kick.stop(t + 0.3);
                 this._bgmNodes.push(kick, kg);
             }
-
-            // Hi-hat ticks
             for (let b = 0; b < 4; b++) {
-                const ht = t + b * (chordDur / 4);
-                const hh = this.ctx.createOscillator();
-                const hg = this.ctx.createGain();
+                const ht = t + b * (p.chordDur / 4);
+                const hh = this.ctx.createOscillator(); const hg = this.ctx.createGain();
                 hh.type = 'square'; hh.frequency.value = 6000;
-                hg.gain.setValueAtTime(0.025, ht);
-                hg.gain.exponentialRampToValueAtTime(0.001, ht + 0.03);
+                hg.gain.setValueAtTime(p.hatVol, ht); hg.gain.exponentialRampToValueAtTime(0.001, ht + 0.03);
                 hh.connect(hg); hg.connect(this._bgmGain);
                 hh.start(ht); hh.stop(ht + 0.04);
                 this._bgmNodes.push(hh, hg);
             }
-
-            this._bgmChordTimer = setTimeout(() => playChord(idx + 1), chordDur * 1000 - 50);
+            this._bgmChordTimer = setTimeout(() => playChord(idx + 1), p.chordDur * 1000 - 50);
         };
 
-        // Simple gentle melody
-        const melNotes = [523, 587, 659, 523, 440, 494, 523, 392, 440, 523, 587, 659];
         const playMelody = (idx) => {
             if (!this._bgmOn) return;
-            const freq = melNotes[idx % melNotes.length];
-            const osc = this.ctx.createOscillator();
-            const g = this.ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            const t = this.ctx.currentTime;
-            const dur = 0.5 + Math.random() * 0.3;
-            g.gain.setValueAtTime(0, t);
-            g.gain.linearRampToValueAtTime(0.06, t + 0.3);
+            const freq = p.melody[idx % p.melody.length];
+            const osc = this.ctx.createOscillator(); const g = this.ctx.createGain();
+            osc.type = 'sine'; osc.frequency.value = freq;
+            const t = this.ctx.currentTime; const dur = 0.5 + Math.random() * 0.3;
+            g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(p.melVol, t + 0.3);
             g.gain.linearRampToValueAtTime(0, t + dur);
             osc.connect(g); g.connect(this._bgmGain);
             osc.start(t); osc.stop(t + dur + 0.05);
             this._bgmNodes.push(osc, g);
-            const nextDelay = 700 + Math.random() * 600;
-            this._bgmMelTimer = setTimeout(() => playMelody((idx + 1) % melNotes.length), nextDelay);
+            this._bgmMelTimer = setTimeout(() => playMelody((idx + 1) % p.melody.length), p.tempo + Math.random() * 400);
         };
 
         playChord(0);
