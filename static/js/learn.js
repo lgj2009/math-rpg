@@ -204,7 +204,122 @@ const learn = {
         }
     },
 
-    _startSecantCanvas() { this._animateSecantToTangent(); },
+    _startSecantCanvas() {
+        if (!document.getElementById('visual-canvas')) return;
+        const infoText = document.getElementById('visual-info');
+        const txt = infoText ? infoText.textContent || '' : '';
+        if (txt.includes('拖动三角形')) this._animateSineLaw();
+        else if (txt.includes('拖动 d')) this._animateArithmeticSeq();
+        else this._animateSecantToTangent();
+    },
+
+    // ── Sine Law: Circumcircle + Triangle ──────────────────────────
+    _animateSineLaw() {
+        const canvas = document.getElementById('visual-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        const info = document.getElementById('visual-info');
+        let dragging = null;
+
+        // Triangle vertices: A, B, C
+        let pts = { A: {x: 120, y: 270}, B: {x: 400, y: 270}, C: {x: 200, y: 80} };
+
+        const dist = (p, q) => Math.sqrt((p.x-q.x)**2 + (p.y-q.y)**2);
+        const angle = (p, q, r) => {
+            const a = dist(q, r), b = dist(p, r), c = dist(p, q);
+            return Math.acos((b*b + c*c - a*a) / (2*b*c));
+        };
+
+        const circumcircle = () => {
+            const A = pts.A, B = pts.B, C = pts.C;
+            const d = 2*(A.x*(B.y-C.y) + B.x*(C.y-A.y) + C.x*(A.y-B.y));
+            if (Math.abs(d) < 1) return {x: W/2, y: H/2, r: 150};
+            const ux = ((A.x*A.x+A.y*A.y)*(B.y-C.y) + (B.x*B.x+B.y*B.y)*(C.y-A.y) + (C.x*C.x+C.y*C.y)*(A.y-B.y)) / d;
+            const uy = ((A.x*A.x+A.y*A.y)*(C.x-B.x) + (B.x*B.x+B.y*B.y)*(A.x-C.x) + (C.x*C.x+C.y*C.y)*(B.x-A.x)) / d;
+            return {x: ux, y: uy, r: dist({x:ux,y:uy}, A)};
+        };
+
+        const draw = () => {
+            ctx.clearRect(0, 0, W, H);
+            const A = pts.A, B = pts.B, C = pts.C;
+            const a = dist(B, C), b = dist(A, C), c = dist(A, B);
+            const angA = angle(B, A, C), angB = angle(A, B, C), angC = angle(A, C, B);
+            const cc = circumcircle();
+            const ratioA = (a / Math.sin(angA)).toFixed(1);
+            const ratioB = (b / Math.sin(angB)).toFixed(1);
+            const ratioC = (c / Math.sin(angC)).toFixed(1);
+            const twoR = (2 * cc.r).toFixed(1);
+
+            // Circumcircle
+            ctx.strokeStyle = 'rgba(139,92,246,0.3)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(cc.x, cc.y, cc.r, 0, Math.PI*2); ctx.stroke();
+            ctx.fillStyle = '#a78bfa'; ctx.beginPath(); ctx.arc(cc.x, cc.y, 3, 0, Math.PI*2); ctx.fill();
+
+            // Triangle
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath(); ctx.stroke();
+            ctx.fillStyle = 'rgba(240,180,41,0.1)'; ctx.fill();
+
+            // Vertices
+            [{p: A, n: 'A'}, {p: B, n: 'B'}, {p: C, n: 'C'}].forEach(v => {
+                ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(v.p.x, v.p.y, 7, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 14px system-ui'; ctx.fillText(v.n, v.p.x+10, v.p.y-8);
+            });
+
+            // Labels
+            const mid = (p,q) => ({x:(p.x+q.x)/2, y:(p.y+q.y)/2});
+            const ab = mid(A,B), bc = mid(B,C), ca = mid(C,A);
+            ctx.fillStyle = '#fff'; ctx.font = '12px system-ui';
+            ctx.fillText(`c=${c.toFixed(0)}`, ab.x, ab.y+16);
+            ctx.fillText(`a=${a.toFixed(0)}`, bc.x-30, bc.y-6);
+            ctx.fillText(`b=${b.toFixed(0)}`, ca.x+10, ca.y-6);
+
+            // Angles
+            ctx.fillStyle = '#f59e0b'; ctx.font = '11px system-ui';
+            ctx.fillText(`A=${(angA*180/Math.PI).toFixed(0)}°`, A.x-60, A.y-8);
+            ctx.fillText(`B=${(angB*180/Math.PI).toFixed(0)}°`, B.x+10, B.y-14);
+            ctx.fillText(`C=${(angC*180/Math.PI).toFixed(0)}°`, C.x-60, C.y-14);
+
+            // Info panel
+            if (info) info.innerHTML = `
+                a/sinA = ${ratioA} &nbsp;|&nbsp; b/sinB = ${ratioB} &nbsp;|&nbsp; c/sinC = ${ratioC} &nbsp;|&nbsp; 2R = ${twoR}
+                <br><span style='font-size:11px;color:${ratioA===ratioB&&ratioB===ratioC?'var(--emerald)':'var(--ruby)'}'>
+                ${ratioA===ratioB&&ratioB===ratioC?'✅ 三个比值相等！这就是正弦定理':'⚠️ 拖动顶点试试'}</span>`;
+        };
+
+        canvas.onmousedown = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX-rect.left)*(W/rect.width);
+            const my = (e.clientY-rect.top)*(H/rect.height);
+            for (const [k, p] of Object.entries(pts)) {
+                if (Math.hypot(mx-p.x, my-p.y) < 15) { dragging = k; canvas.style.cursor='grabbing'; break; }
+            }
+        };
+        canvas.onmousemove = (e) => {
+            if (dragging) {
+                const rect = canvas.getBoundingClientRect();
+                pts[dragging].x = (e.clientX-rect.left)*(W/rect.width);
+                pts[dragging].y = (e.clientY-rect.top)*(H/rect.height);
+                draw();
+            }
+        };
+        canvas.onmouseup = () => { dragging = null; canvas.style.cursor='default'; };
+        canvas.ontouchstart = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.touches[0].clientX-rect.left)*(W/rect.width);
+            const my = (e.touches[0].clientY-rect.top)*(H/rect.height);
+            for (const [k, p] of Object.entries(pts)) {
+                if (Math.hypot(mx-p.x, my-p.y) < 25) { dragging = k; e.preventDefault(); break; }
+            }
+        };
+        canvas.ontouchmove = (e) => {
+            if (dragging) { const rect = canvas.getBoundingClientRect(); pts[dragging].x = (e.touches[0].clientX-rect.left)*(W/rect.width); pts[dragging].y = (e.touches[0].clientY-rect.top)*(H/rect.height); draw(); e.preventDefault(); }
+        };
+        canvas.ontouchend = () => { dragging = null; };
+
+        draw();
+    },
 
     _animateSecantToTangent() {
         const canvas = document.getElementById('visual-canvas');
@@ -337,6 +452,82 @@ const learn = {
         };
         canvas.ontouchend = () => { dragging = false; };
 
+        draw();
+    },
+
+    _animateArithmeticSeq() {
+        const canvas = document.getElementById('visual-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        const info = document.getElementById('visual-info');
+        let a1 = 1, d = 3, draggingSlider = null;
+
+        const draw = () => {
+            ctx.clearRect(0, 0, W, H);
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(40, H-80); ctx.lineTo(W-20, H-80); ctx.stroke();
+            const terms = [];
+            for (let i = 1; i <= 8; i++) terms.push(a1 + (i-1)*d);
+            const xScale = (W-100) / Math.max(1, terms[7] - terms[0] + d*2);
+            const xOffset = 50 - (terms[0] - d) * xScale;
+            terms.forEach((val, i) => {
+                const x = xOffset + val * xScale, y = H - 80;
+                ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px system-ui'; ctx.fillText(`a${i+1}=${val}`, x-18, y-16);
+                if (i > 0) {
+                    const px = xOffset + terms[i-1] * xScale;
+                    ctx.strokeStyle = 'rgba(240,180,41,0.4)'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(x, y); ctx.stroke();
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '10px system-ui';
+                    ctx.fillText(`+${d}`, (px+x)/2-8, y-6);
+                }
+            });
+            ctx.fillStyle = '#3b82f6'; ctx.fillRect(40, H-40, 200, 6);
+            const a1x = 40 + (a1 + 5) * (200/15);
+            ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(a1x, H-37, 10, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = '11px system-ui'; ctx.fillText(`a1 = ${a1}`, 40, H-50);
+            ctx.fillStyle = '#ef4444'; ctx.fillRect(280, H-40, 180, 6);
+            const dx = 280 + (d + 2) * (180/10);
+            ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(dx, H-37, 10, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.fillText(`d = ${d}`, 280, H-50);
+            if (info) info.innerHTML = `a1=${a1}, d=${d} → an = ${a1} + (n-1)×${d} | 通项: an = ${d}n + ${a1-d}`;
+        };
+        canvas.onmousedown = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX-rect.left)*(W/rect.width), my = (e.clientY-rect.top)*(H/rect.height);
+            if (my > H-55 && my < H-20) {
+                if (mx > 40 && mx < 240) draggingSlider = 'a1';
+                else if (mx > 280 && mx < 460) draggingSlider = 'd';
+            }
+        };
+        canvas.onmousemove = (e) => {
+            if (!draggingSlider) return;
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX-rect.left)*(W/rect.width);
+            if (draggingSlider === 'a1') a1 = Math.round(Math.max(-5, Math.min(10, (mx-40)*(15/200)-5)));
+            else d = Math.round(Math.max(-2, Math.min(8, (mx-280)*(10/180)-2)));
+            draw();
+        };
+        canvas.onmouseup = () => { draggingSlider = null; };
+        canvas.ontouchstart = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.touches[0].clientX-rect.left)*(W/rect.width), my = (e.touches[0].clientY-rect.top)*(H/rect.height);
+            if (my > H-55 && my < H-20) {
+                if (mx > 40 && mx < 240) draggingSlider = 'a1';
+                else if (mx > 280 && mx < 460) draggingSlider = 'd';
+                e.preventDefault();
+            }
+        };
+        canvas.ontouchmove = (e) => {
+            if (!draggingSlider) return;
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.touches[0].clientX-rect.left)*(W/rect.width);
+            if (draggingSlider === 'a1') a1 = Math.round(Math.max(-5, Math.min(10, (mx-40)*(15/200)-5)));
+            else d = Math.round(Math.max(-2, Math.min(8, (mx-280)*(10/180)-2)));
+            draw(); e.preventDefault();
+        };
+        canvas.ontouchend = () => { draggingSlider = null; };
         draw();
     },
 };
