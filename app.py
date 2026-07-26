@@ -15,8 +15,6 @@ from routers.learn import router as learn_router
 from routers.auth import router as auth_router
 from routers.guild import router as guild_router
 
-import threading
-
 app = FastAPI(title="Math RPG")
 
 static_dir = Path(__file__).parent / "static"
@@ -39,16 +37,8 @@ app.include_router(guild_router)
 @app.on_event("startup")
 def startup():
     init_db()
-    # Seed in background to not block healthcheck
-    def do_seed():
-        from database import get_db
-        db = get_db()
-        count = db.execute("SELECT COUNT(*) FROM modules").fetchone()[0]
-        db.close()
-        if count == 0:
-            from seed_data import seed
-            seed()
-    threading.Thread(target=do_seed, daemon=True).start()
+    # Seeding done at build time (Dockerfile runs build_seed.py)
+    pass
 
 
 @app.get("/health")
