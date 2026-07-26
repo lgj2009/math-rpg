@@ -1,7 +1,7 @@
 """Extended rich lessons — all remaining chapters in deep format."""
 # Import at bottom of rich_lessons.py: from services.rich_lessons_ext import EXT_LESSONS; RICH_LESSONS.update(EXT_LESSONS)
 
-def _m(chapter, char, text="", expression=None, bg=None, music=None, html=None, choices=None, canvas=None, quiz=None):
+def _m(char, text="", expression=None, bg=None, music=None, html=None, choices=None, canvas=None, quiz=None):
     """Shorthand for building VN script lines."""
     line = {"char": char, "text": text}
     if expression: line["expression"] = expression
