@@ -191,6 +191,22 @@ function setupAuthForm(mode) {
             btn.disabled = false; btn.textContent = mode === 'login' ? 'Login' : 'Register';
         }
     };
+
+    // Add forgot password link below form
+    if (mode === 'login') {
+        const forgot = document.createElement('div');
+        forgot.style.cssText = 'text-align:center;margin-top:8px;font-size:12px;color:var(--text-muted);cursor:pointer';
+        forgot.textContent = 'Forgot password?';
+        forgot.onclick = () => {
+            const email = document.getElementById('auth-email').value.trim();
+            if (!email) { App.toast('Enter your email first', 'warning'); return; }
+            App.post('/auth/forgot-password', { email }).then(r => {
+                App.toast('Reset code: ' + r.reset_code, 'info');
+                document.getElementById('auth-status').innerHTML = '<span style="color:var(--gold)">Reset code: <b>' + r.reset_code + '</b><br>Use this code as your new password to login</span>';
+            }).catch(e => App.toast(e.message, 'error'));
+        };
+        form.appendChild(forgot);
+    }
 }
 
 // Auto-start BGM on first user interaction (browser policy)

@@ -116,3 +116,21 @@ def validate_session(token: str) -> dict | None:
         "email": row["email"],
         "token": token,
     }
+
+
+def forgot_password(email: str) -> dict:
+    """Generate a reset code and update the user's password to it."""
+    db = get_db()
+    user = db.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+    if not user:
+        return {"detail": "Email not found"}
+
+    import random, string
+    code = ''.join(random.choices(string.digits, k=6))
+    new_hash = _hash(code)
+
+    db.execute("UPDATE users SET password_hash=? WHERE id=?", (new_hash, user["id"]))
+    db.commit()
+    db.close()
+
+    return {"reset_code": code, "message": "Use this code as your new password to login"}

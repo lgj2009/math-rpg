@@ -43,6 +43,18 @@ def logout(authorization: str = Header(None)):
     return {"ok": True}
 
 
+class ForgotBody(BaseModel):
+    email: str
+
+
+@router.post("/forgot-password")
+def forgot_password(body: ForgotBody):
+    result = auth_service.forgot_password(body.email.strip())
+    if "detail" in result:
+        raise HTTPException(404, result["detail"])
+    return result
+
+
 @router.get("/me")
 def me(authorization: str = Header(None)):
     token = None
