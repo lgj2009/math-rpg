@@ -95,8 +95,12 @@ const VN = {
             quizEl.innerHTML = `
                 <div class="vn-quiz-q">${q.question}</div>
                 <input id="vn-quiz-input" type="text" class="vn-quiz-input" placeholder="${q.placeholder || '输入答案...'}">
-                <button class="vn-quiz-btn" onclick="event.stopPropagation();VN._checkQuiz()">确认</button>
+                <button class="vn-quiz-btn" id="vn-quiz-submit">确认</button>
                 <div id="vn-quiz-feedback"></div>`;
+            document.getElementById('vn-quiz-submit').onclick = (e) => {
+                e.stopPropagation();
+                this._checkQuiz();
+            };
             this._quizAnswer = q.answer;
             this._quizCorrectJump = q.correct_jump;
             this._quizWrongJump = q.wrong_jump;
@@ -110,8 +114,16 @@ const VN = {
             indicator.style.display = 'none';
             textEl.textContent = line.text || '';
             choicesEl.innerHTML = line.choices.map((c, i) =>
-                `<button class="vn-choice" onclick="event.stopPropagation();VN._choose(${i})">${c.label}</button>`
+                `<button class="vn-choice" data-idx="${i}">${c.label}</button>`
             ).join('');
+            // Use event delegation — more reliable than inline onclick
+            choicesEl.onclick = (e) => {
+                const btn = e.target.closest('.vn-choice');
+                if (!btn) return;
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.idx);
+                this._choose(idx);
+            };
             this._el.onclick = null;
         } else {
             indicator.style.display = 'block';
