@@ -33,6 +33,12 @@ const App = {
 
     navigate(page) {
         if (this._navigating) return;
+        // If not logged in, always show welcome
+        if (!localStorage.getItem('authToken') && page !== 'settings') {
+            showWelcome();
+            this._navigating = false;
+            return;
+        }
         this._navigating = true;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -199,17 +205,14 @@ window.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('authToken');
 
     if (token) {
-        // Validate session and get player
         App.get('/auth/me').then(user => {
-            App.state.player = user.player || { id: user.player_id, username: user.username };
-            App.get(`/players/${user.player_id}`).then(p => {
-                App.state.player = p;
+            if (user.player) {
+                App.state.player = user.player;
                 App.updateSidebar();
                 App.navigate(page);
-            }).catch(() => {
-                App.updateSidebar();
-                App.navigate(page);
-            });
+            } else {
+                showWelcome();
+            }
         }).catch(() => {
             showWelcome();
         });

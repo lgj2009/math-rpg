@@ -33,6 +33,7 @@
         <a class="nav-item" data-page="season">🏁 赛季通行证</a>
         <a class="nav-item" data-page="achievements">🏆 成就殿堂</a>
         <a class="nav-item" data-page="settings">⚙️ 设置</a>
+        <div class="nav-item" onclick="App.api('POST','/auth/logout');localStorage.clear();location.reload()" style="margin-top:auto;color:var(--ruby)">🚪 登出</div>
     </nav>
     <main id="main">
         <div id="page-dashboard" class="page active"></div>

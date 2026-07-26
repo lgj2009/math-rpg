@@ -53,4 +53,7 @@ def me(authorization: str = Header(None)):
     user = auth_service.validate_session(token)
     if not user:
         raise HTTPException(401, "Invalid or expired session")
-    return user
+    # Include full player data
+    from services.player_service import get_player
+    player = get_player(user["player_id"])
+    return {**user, "player": player}
