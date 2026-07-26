@@ -815,17 +815,47 @@ strong.hl { color: var(--gold); font-weight: 800; background: linear-gradient(18
 .achieve-rarity { font-size: 10px; font-weight: 700; margin-top: 6px; letter-spacing: 0.06em; }
 
 /* ── Season Pass ── */
-.st-container { position: relative; padding-left: 60px; min-height: 600px; }
-.st-wrapper { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; position: relative; }
-.st-node { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid var(--surface2); background: var(--bg-surface); flex-shrink: 0; }
-.st-node.unlocked { border-color: var(--gold); background: rgba(240,180,41,0.1); }
-.st-node.claimed { border-color: var(--emerald); background: rgba(34,197,94,0.1); }
-.st-node.locked { opacity: 0.4; }
-.st-label { min-width: 60px; display: flex; flex-direction: column; }
-.st-rewards { display: flex; gap: 8px; flex: 1; }
-.st-reward { font-size: 12px; padding: 4px 10px; border-radius: 12px; }
-.st-reward.free { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
-.st-reward.premium { background: rgba(139,92,246,0.12); color: var(--purple); }
+.sp-header { margin-bottom: 20px; }
+.sp-header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.sp-header-top h2 { margin-bottom: 0; }
+.sp-timer { background: rgba(240,180,41,0.12); color: var(--gold); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; }
+.sp-subtitle { color: var(--text-secondary); font-size: 13px; margin-top: 6px; }
+.sp-progress-bar { position: relative; height: 24px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+.sp-progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); border-radius: 12px; transition: width 0.5s ease; }
+.sp-progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #1a1a1a; }
+.sp-next-tier { text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+.sp-track-label { display: flex; justify-content: space-between; max-width: 500px; margin: 0 auto 16px; font-size: 13px; font-weight: 600; }
+.sp-track { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.sp-tier { display: flex; gap: 14px; align-items: flex-start; }
+.sp-tier.locked { opacity: 0.35; }
+.sp-tier.current .sp-tier-node { animation: sp-pulse 2s ease infinite; }
+@keyframes sp-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(240,180,41,0.4); } 50% { box-shadow: 0 0 0 8px rgba(240,180,41,0); } }
+.sp-tier-node { width: 48px; height: 48px; border-radius: 50%; background: var(--bg-surface); border: 2px solid var(--surface2); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
+.sp-tier-node::after { content: ''; position: absolute; top: 48px; left: 50%; transform: translateX(-50%); width: 2px; height: calc(100% + 12px + 40px); background: var(--surface2); }
+.sp-tier:last-child .sp-tier-node::after { display: none; }
+.sp-tier.unlocked .sp-tier-node { border-color: var(--gold); background: rgba(240,180,41,0.12); }
+.sp-tier.claimed .sp-tier-node { border-color: var(--emerald); background: rgba(34,197,94,0.12); }
+.sp-tier-icon { font-size: 18px; line-height: 1; }
+.sp-tier-num { font-size: 10px; font-weight: 700; color: var(--text-muted); line-height: 1; }
+.sp-tier-card { flex: 1; background: var(--bg-surface); border-radius: var(--radius-lg); padding: 14px 16px; border: 1px solid rgba(255,255,255,0.04); }
+.sp-tier.current .sp-tier-card { border-color: rgba(240,180,41,0.2); }
+.sp-tier-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.sp-tier-label { font-weight: 700; font-size: 13px; }
+.sp-tier-xp { font-size: 12px; color: var(--text-muted); }
+.sp-rewards-row { display: flex; gap: 8px; }
+.sp-reward-box { flex: 1; padding: 8px 10px; border-radius: var(--radius); display: flex; flex-direction: column; gap: 2px; }
+.sp-reward-box.free { background: rgba(255,255,255,0.04); }
+.sp-reward-box.premium { background: rgba(139,92,246,0.08); }
+.sp-reward-track { font-size: 10px; font-weight: 600; }
+.sp-reward-box.free .sp-reward-track { color: var(--text-muted); }
+.sp-reward-box.premium .sp-reward-track { color: var(--purple); }
+.sp-reward-item { font-size: 13px; font-weight: 600; }
+.sp-claimed-badge { color: var(--emerald); font-weight: 700; font-size: 13px; text-align: center; }
+.sp-lock-info { font-size: 12px; color: var(--text-muted); }
+.sp-xp-sources { margin-top: 40px; background: var(--bg-surface); border-radius: var(--radius-lg); padding: 20px; border: 1px solid rgba(255,255,255,0.04); }
+.sp-xp-sources h4 { margin-bottom: 12px; }
+.sp-source-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.sp-source { font-size: 13px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); }
 
 .btn-danger { background: var(--ruby); color: #fff; border: none; padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-weight: 700; }
 
