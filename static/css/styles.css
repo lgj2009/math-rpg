@@ -696,7 +696,15 @@ h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
 .layer-3 { border-left: 3px solid #8b5cf6; }
 .layer-4 { border-left: 3px solid #22c55e; }
 .layer-5 { border-left: 3px solid #ef4444; }
-.deep-layer-title { font-size: 17px; font-weight: 800; padding: 16px 20px 8px; letter-spacing: -0.01em; }
+.deep-layer-title { font-size: 17px; font-weight: 800; padding: 16px 20px 8px; letter-spacing: -0.01em; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+.layer-lock { font-size: 16px; }
+.layer-hint { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: auto; }
+.deep-layer.locked .deep-layer-body { display: none; }
+.deep-layer.locked { opacity: 0.6; }
+.deep-layer.locked:hover { opacity: 0.85; }
+.deep-layer.unlocked { opacity: 1; }
+.deep-layer.unlocked .deep-layer-body { animation: layer-reveal 0.4s ease; }
+@keyframes layer-reveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 .layer-1 .deep-layer-title { color: #f59e0b; }
 .layer-2 .deep-layer-title { color: #3b82f6; }
 .layer-3 .deep-layer-title { color: #8b5cf6; }

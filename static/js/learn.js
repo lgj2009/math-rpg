@@ -114,33 +114,30 @@ const learn = {
         const hl = (text) => text.replace(/\*\*(.+?)\*\*/g, '<strong class="hl">$1</strong>');
 
         if (isDeep) {
-            // 5-layer deep learning format
+            // 5-layer progressive unlock
+            const layers = [
+                {id:1, title: l.layer1_title || '🌍 为什么要发明这个？', body: l.layer1, color: 'gold'},
+                {id:2, title: l.layer2_title || '🔍 怎么发现的？', body: l.layer2, color: 'blue'},
+                {id:3, title: l.layer3_title || '🧱 核心概念', body: l.layer3, color: 'purple'},
+                {id:4, title: l.layer4_title || '🔗 在数学大厦中的位置', body: l.layer4, color: 'green'},
+                {id:5, title: l.layer5_title || '🛠️ 怎么用？', body: l.layer5, color: 'red'},
+            ];
+            let layersHTML = layers.map((ly, i) => `
+                <div class="deep-layer layer-${ly.id} locked" id="deep-layer${ly.id}">
+                    <div class="deep-layer-title" onclick="learn._unlockLayer(${ly.id})">
+                        <span class="layer-lock">🔒</span> ${ly.title}
+                        <span class="layer-hint">点击解锁</span>
+                    </div>
+                    <div class="deep-layer-body" style="display:none">${hl(ly.body).replace(/\n/g, '<br>')}</div>
+                </div>`).join('');
+
             el.innerHTML = `<div class="lesson lesson-deep">
                 <div class="lesson-header-row">
                     ${l.textbook_ref ? `<span class="learn-ref">📖 ${l.textbook_ref}</span>` : ''}
                 </div>
-                <div class="deep-layer layer-1" id="deep-layer1">
-                    <div class="deep-layer-title">${l.layer1_title || '🌍 为什么要发明这个？'}</div>
-                    <div class="deep-layer-body">${hl(l.layer1).replace(/\n/g, '<br>')}</div>
-                </div>
-                <div class="deep-layer layer-2" id="deep-layer2">
-                    <div class="deep-layer-title">${l.layer2_title || '🔍 怎么发现的？'}</div>
-                    <div class="deep-layer-body">${hl(l.layer2).replace(/\n/g, '<br>')}</div>
-                </div>
-                <div class="deep-layer layer-3" id="deep-layer3">
-                    <div class="deep-layer-title">${l.layer3_title || '🧱 核心概念'}</div>
-                    <div class="deep-layer-body">${hl(l.layer3).replace(/\n/g, '<br>')}</div>
-                </div>
+                ${layersHTML}
                 ${l.formula ? `<div class="lesson-section"><h4>📐 公式</h4><div class="lesson-formula">$$${l.formula}$$</div></div>` : ''}
                 ${l.visual ? `<div class="lesson-visual"><canvas id="visual-canvas" width="560" height="360"></canvas><div id="visual-info"></div></div>` : ''}
-                <div class="deep-layer layer-4" id="deep-layer4">
-                    <div class="deep-layer-title">${l.layer4_title || '🔗 在数学大厦中的位置'}</div>
-                    <div class="deep-layer-body">${hl(l.layer4).replace(/\n/g, '<br>')}</div>
-                </div>
-                <div class="deep-layer layer-5" id="deep-layer5">
-                    <div class="deep-layer-title">${l.layer5_title || '🛠️ 怎么用？'}</div>
-                    <div class="deep-layer-body">${hl(l.layer5).replace(/\n/g, '<br>')}</div>
-                </div>
                 <div class="lesson-section"><h4>💡 例题</h4>${examplesHTML}</div>
                 <div class="lesson-section"><h4>⚠️ 常见错误</h4>${l.traps.map(t => `<div class="lesson-trap">• ${t}</div>`).join('')}</div>
                 ${l.children && l.children.length ? `<div class="lesson-section"><h4>📎 进阶</h4><div class="learn-children">${l.children.map(c => `<span class="learn-child-link" onclick="learn._selectConcept('${c}')">→ ${c}</span>`).join('')}</div></div>` : ''}
@@ -177,6 +174,25 @@ const learn = {
     },
 
     // ── Secant → Tangent Animation ──────────────────────────────────
+    _unlockLayer(id) {
+        const layer = document.getElementById(`deep-layer${id}`);
+        if (!layer) return;
+        const body = layer.querySelector('.deep-layer-body');
+        const title = layer.querySelector('.deep-layer-title');
+        const lock = layer.querySelector('.layer-lock');
+        const hint = layer.querySelector('.layer-hint');
+        if (layer.classList.contains('locked')) {
+            layer.classList.remove('locked');
+            layer.classList.add('unlocked');
+            if (body) body.style.display = 'block';
+            if (lock) lock.textContent = '🔓';
+            if (hint) hint.textContent = '已解锁';
+            // Scroll to the revealed content
+            body.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            App.renderMath(body);
+        }
+    },
+
     _startSecantCanvas() { this._animateSecantToTangent(); },
 
     _animateSecantToTangent() {
