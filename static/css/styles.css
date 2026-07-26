@@ -687,7 +687,7 @@ h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
 .lesson-summary { background: rgba(240,180,41,0.08); padding: 14px 18px; border-radius: var(--radius); margin-bottom: 20px; font-size: 15px; line-height: 1.7; border-left: 3px solid var(--gold); }
 .lesson-section { margin-bottom: 20px; }
 .lesson-section h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
-.lesson-formula { background: var(--bg-field); padding: 16px 20px; border-radius: var(--radius); font-size: 15px; overflow-x: auto; line-height: 2.2; }
+.lesson-formula { background: linear-gradient(135deg, rgba(240,180,41,0.08), rgba(240,180,41,0.02)); padding: 20px 24px; border-radius: var(--radius-lg); font-size: 16px; overflow-x: auto; line-height: 2.6; border: 1px solid rgba(240,180,41,0.25); box-shadow: 0 0 20px rgba(240,180,41,0.06); font-weight: 500; }
 .lesson-text { font-size: 14px; line-height: 1.9; color: var(--text-secondary); }
 .lesson-example { background: var(--bg-surface); padding: 16px; border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.04); }
 .example-q { margin-bottom: 12px; line-height: 1.7; }
