@@ -118,6 +118,7 @@ const learn = {
                     <div class="deep-layer-body">${hl(l.layer3).replace(/\n/g, '<br>')}</div>
                 </div>
                 ${l.formula ? `<div class="lesson-section"><h4>📐 公式</h4><div class="lesson-formula">$$${l.formula}$$</div></div>` : ''}
+                ${l.visual ? `<div class="lesson-visual"><canvas id="visual-canvas" width="560" height="360"></canvas><div id="visual-info"></div></div>` : ''}
                 <div class="deep-layer layer-4" id="deep-layer4">
                     <div class="deep-layer-title">${l.layer4_title || '🔗 在数学大厦中的位置'}</div>
                     <div class="deep-layer-body">${hl(l.layer4).replace(/\n/g, '<br>')}</div>
@@ -155,5 +156,147 @@ const learn = {
             </div>`;
         }
         App.renderMath(el);
+        // Start visualization if present
+        if (l.visual === 'secant_to_tangent') {
+            setTimeout(() => this._animateSecantToTangent(), 300);
+        }
+    },
+
+    // ── Secant → Tangent Animation ──────────────────────────────────
+    _animateSecantToTangent() {
+        const canvas = document.getElementById('visual-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        const info = document.getElementById('visual-info');
+        let animId;
+
+        // Curve: y = x², mapped to canvas coordinates
+        const fx = (x) => x * x;
+        const toCanvasX = (x) => 80 + x * 100;        // x range: -0.5 to 4.5
+        const toCanvasY = (y) => H - 60 - y * 22;      // y range: 0 to 16 → invert for canvas
+
+        // Draw grid
+        const drawGrid = () => {
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const cx = toCanvasX(i);
+                ctx.beginPath(); ctx.moveTo(cx, 30); ctx.lineTo(cx, H-40); ctx.stroke();
+            }
+            for (let j = 0; j <= 15; j+=2) {
+                const cy = toCanvasY(j);
+                ctx.beginPath(); ctx.moveTo(60, cy); ctx.lineTo(W-20, cy); ctx.stroke();
+            }
+            // Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(60, toCanvasY(0)); ctx.lineTo(W-10, toCanvasY(0)); ctx.stroke(); // x-axis
+            ctx.beginPath(); ctx.moveTo(toCanvasX(0), H-20); ctx.lineTo(toCanvasX(0), 20); ctx.stroke();   // y-axis
+            // Labels
+            ctx.fillStyle = '#8896ab'; ctx.font = '11px system-ui';
+            for (let i = 1; i <= 4; i++) { ctx.fillText(i, toCanvasX(i)-4, toCanvasY(0)+16); }
+            for (let j = 2; j <= 14; j+=4) { ctx.fillText(j, toCanvasX(0)-22, toCanvasY(j)+4); }
+            ctx.fillText('x', W-15, toCanvasY(0)+16); ctx.fillText('y', toCanvasX(0)-14, 28);
+        };
+
+        // Draw curve
+        const drawCurve = () => {
+            ctx.strokeStyle = 'rgba(139,92,246,0.6)'; ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            let first = true;
+            for (let px = -0.2; px <= 4.2; px += 0.05) {
+                const cx = toCanvasX(px), cy = toCanvasY(fx(px));
+                if (first) { ctx.moveTo(cx, cy); first = false; }
+                else ctx.lineTo(cx, cy);
+            }
+            ctx.stroke();
+            ctx.fillStyle = '#a78bfa'; ctx.font = '13px system-ui';
+            ctx.fillText('y = x²', toCanvasX(3.2), toCanvasY(fx(3.2))-10);
+        };
+
+        // Animation: B approaches A
+        const xA = 1, yA = fx(1);
+        let t = 0; // 0 → 1, where t=1 means B=A (full approach)
+
+        const drawFrame = () => {
+            ctx.clearRect(0, 0, W, H);
+            drawGrid();
+            drawCurve();
+
+            // Point A (fixed)
+            const ax = toCanvasX(xA), ay = toCanvasY(yA);
+            ctx.fillStyle = '#f59e0b'; ctx.beginPath();
+            ctx.arc(ax, ay, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 13px system-ui';
+            ctx.fillText('A(1,1)', ax+10, ay-10);
+
+            // Point B (approaches A as t increases)
+            const xB = xA + 2.5 * (1 - t); // starts at x=3.5, ends at x=1
+            const yB = fx(xB);
+            const bx = toCanvasX(xB), by = toCanvasY(yB);
+            ctx.fillStyle = '#3b82f6'; ctx.beginPath();
+            ctx.arc(bx, by, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#3b82f6'; ctx.font = 'bold 13px system-ui';
+            ctx.fillText(`B(${xB.toFixed(2)},${yB.toFixed(2)})`, bx+10, by-10);
+
+            // Secant line AB
+            const dxB = xB - xA;
+            if (dxB > 0.02) {
+                // Extend secant line beyond A and B
+                const extendLeft = toCanvasX(xA - 0.5);
+                const extendRight = toCanvasX(xB + 0.5);
+                const slope = (yB - yA) / dxB;
+                const yLeft = yA + slope * (-0.5);
+                const yRight = yB + slope * 0.5;
+                ctx.strokeStyle = 'rgba(59,130,246,0.7)'; ctx.lineWidth = 2;
+                ctx.setLineDash([6, 3]);
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(xA - 0.5), toCanvasY(yLeft));
+                ctx.lineTo(toCanvasX(xB + 0.5), toCanvasY(yRight));
+                ctx.stroke();
+                ctx.setLineDash([]);
+                // Slope label
+                ctx.fillStyle = '#3b82f6'; ctx.font = '12px system-ui';
+                const slopeText = `割线斜率 = ${slope.toFixed(2)}`;
+                ctx.fillText(slopeText, toCanvasX(2), toCanvasY(fx(2))+30);
+                const dxText = `Δx = ${dxB.toFixed(2)}`;
+                ctx.fillText(dxText, toCanvasX(2), toCanvasY(fx(2))+48);
+            } else {
+                // Tangent line at A
+                const slope = 2 * xA; // f'(1) = 2
+                const yLeft = yA + slope * (-0.5);
+                const yRight = yA + slope * 3;
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(toCanvasX(xA - 0.5), toCanvasY(yLeft));
+                ctx.lineTo(toCanvasX(xA + 3), toCanvasY(yRight));
+                ctx.stroke();
+                ctx.fillStyle = '#ef4444'; ctx.font = 'bold 13px system-ui';
+                ctx.fillText('切线斜率 = 2', toCanvasX(2), toCanvasY(fx(2))+30);
+                ctx.fillText("这就是 f'(1)", toCanvasX(2), toCanvasY(fx(2))+50);
+            }
+
+            // Update info
+            if (info) {
+                if (dxB > 0.02) {
+                    info.innerHTML = `<span style="color:#3b82f6">🔵 B 点向 A 点靠近中...</span> Δx = ${dxB.toFixed(3)} | 割线斜率 = ${((yB-yA)/dxB).toFixed(3)}`;
+                } else {
+                    info.innerHTML = `<span style="color:#ef4444">🔴 B 与 A 重合！</span> 割线变成了 <b>切线</b>，斜率 = <b>2</b> ← 这就是导数 f'(1)`;
+                }
+            }
+
+            // Advance animation
+            t += 0.005;
+            if (t >= 1) t = 1;
+            animId = requestAnimationFrame(drawFrame);
+        };
+
+        // Replay button
+        const replay = () => { t = 0; };
+        canvas.onclick = replay;
+        if (info) info.style.cursor = 'pointer';
+        if (info) info.onclick = replay;
+
+        drawFrame();
+        this._visualCleanup = () => cancelAnimationFrame(animId);
     },
 };
