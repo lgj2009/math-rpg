@@ -723,32 +723,17 @@ strong.hl { color: var(--gold); font-weight: 800; background: linear-gradient(18
 
 /* ── Visual Novel ── */
 .vn-stage {
-    position: relative; min-height: 420px; border-radius: var(--radius-lg); overflow: hidden;
+    border-radius: var(--radius-lg); overflow: hidden;
     background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    display: flex; align-items: center; justify-content: center;
+    min-height: 300px; display: flex; flex-direction: column; justify-content: flex-end;
 }
 .vn-stage[data-bg="dawn"] { background: linear-gradient(180deg, #2d1b69 0%, #e2a853 100%); }
 .vn-stage[data-bg="night"] { background: linear-gradient(180deg, #0a0a1a 0%, #1a1a3e 100%); }
 .vn-stage[data-bg="storm"] { background: linear-gradient(180deg, #1a1a2e 0%, #2d1b69 50%, #0a0a1a 100%); }
 
-.vn-char-left, .vn-char-right {
-    position: absolute; bottom: 140px; transition: all 0.5s ease; opacity: 0; transform: translateY(20px);
-    pointer-events: none; /* Don't block clicks on the dialog box */
-}
-.vn-sprite { pointer-events: none; }
-.vn-char-left { left: 40px; }
-.vn-char-right { right: 40px; }
-.vn-char-left.active, .vn-char-right.active { opacity: 1; transform: translateY(0); }
-
-.vn-sprite { text-align: center; }
-.vn-sprite-emoji { font-size: 72px; display: block; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
-.vn-sprite-name { font-size: 11px; color: var(--text-secondary); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
-
 .vn-dialog-box {
-    position: absolute; bottom: 0; left: 0; right: 0; min-height: 120px; z-index: 10;
-    background: linear-gradient(180deg, rgba(15,23,42,0.85), rgba(15,23,42,0.95));
+    background: linear-gradient(180deg, rgba(15,23,42,0.92), rgba(15,23,42,0.98));
     border-top: 1px solid rgba(255,255,255,0.08); padding: 18px 24px 14px;
-    backdrop-filter: blur(8px);
 }
 .vn-speaker { font-size: 13px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.04em; }
 .vn-text { font-size: 15px; line-height: 1.8; min-height: 40px; color: var(--text-primary); }

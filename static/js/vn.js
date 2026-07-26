@@ -14,8 +14,6 @@ const VN = {
         this._lineIdx = 0; this._callback = onFinish;
         this._el = container;
         this._el.innerHTML = `<div class="vn-stage" id="vn-stage">
-            <div class="vn-char-left" id="vn-char-left"></div>
-            <div class="vn-char-right" id="vn-char-right"></div>
             <div class="vn-canvas-embed" id="vn-canvas-embed" style="display:none"></div>
             <div class="vn-dialog-box" id="vn-dialog">
                 <div class="vn-speaker" id="vn-speaker"></div>
@@ -59,15 +57,6 @@ const VN = {
         // Speaker
         speakerEl.textContent = speaker.emoji + ' ' + (speaker.name || '');
         speakerEl.style.color = speaker.color;
-
-        // Character positioning
-        if (line.char === 'sage') {
-            leftEl.innerHTML = `<div class="vn-sprite"><div class="vn-sprite-emoji">${line.expression || speaker.emoji}</div><div class="vn-sprite-name">${speaker.name}</div></div>`;
-            leftEl.classList.add('active'); rightEl.classList.remove('active');
-        } else if (line.char === 'player') {
-            rightEl.innerHTML = `<div class="vn-sprite"><div class="vn-sprite-emoji">${line.expression || speaker.emoji}</div><div class="vn-sprite-name">${speaker.name}</div></div>`;
-            rightEl.classList.add('active'); leftEl.classList.remove('active');
-        }
 
         // Background
         if (line.bg) document.getElementById('vn-stage').dataset.bg = line.bg;
