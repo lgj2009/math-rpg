@@ -1,9 +1,14 @@
 "use strict";
 const MusicPlayer = {
     _open: false,
-    _audio: null,
+    _playerEl: null,
 
-    _init() { if (!this._audio) this._audio = new window.Audio(); },
+    _getPlayer() {
+        if (!this._playerEl) {
+            this._playerEl = document.getElementById('music-iframe');
+        }
+        return this._playerEl;
+    },
 
     toggle() {
         this._open = !this._open;
@@ -12,16 +17,11 @@ const MusicPlayer = {
     },
 
     play(songId, title) {
-        this._init();
-        this._audio.pause();
-        // NetEase direct stream — no iframe, no cross-origin issues
-        const url = `https://music.163.com/song/media/outer/url?id=${songId}.mp3`;
-        this._audio.src = url;
-        this._audio.volume = 0.5;
-        this._audio.play().catch(() => {});
+        const iframe = this._getPlayer();
+        // Official NetEase embed — this works reliably
+        iframe.src = `https://music.163.com/outchain/player?type=2&id=${songId}&auto=1&height=66`;
         document.getElementById('music-now').textContent = '🎶 ' + title;
-        // Also pause BGM
-        if (typeof Audio !== 'undefined' && Audio.bgmStop) Audio.bgmStop();
+        if (typeof SFX !== 'undefined' && SFX.bgmStop) SFX.bgmStop();
     },
 
     playCustom() {
@@ -35,18 +35,16 @@ const MusicPlayer = {
     },
 
     control(action) {
-        this._init();
-        if (action === 'pause') {
-            if (this._audio.paused) this._audio.play().catch(()=>{});
-            else this._audio.pause();
-        } else if (action === 'stop') {
-            this._audio.pause();
-            this._audio.src = '';
+        const iframe = this._getPlayer();
+        if (action === 'pause' || action === 'stop') {
+            iframe.src = '';
             document.getElementById('music-now').textContent = '';
         }
     },
 
     setVolume(val) {
-        this._audio.volume = val / 100;
+        // Volume for embedded iframe is limited
+        const iframe = this._getPlayer();
+        if (val < 10) { iframe.src = ''; }
     },
 };
