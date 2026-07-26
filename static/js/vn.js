@@ -167,3 +167,4 @@ const VN = {
         if (this._callback) this._callback();
     },
 };
+window.VN = VN;

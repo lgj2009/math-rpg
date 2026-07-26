@@ -4,6 +4,7 @@ const learn = {
     _activeModule: null,
     _activeConcept: null,
     _renderId: 0,
+    _debug: true,
 
     // ─── Module Grid (like hunting ground) ──────────────────────────
     async render() {
@@ -531,3 +532,4 @@ const learn = {
         draw();
     },
 };
+window.learn = learn;
