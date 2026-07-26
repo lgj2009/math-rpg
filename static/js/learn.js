@@ -96,6 +96,9 @@ const learn = {
             </div>`;
         }
 
+        // Helper: convert **text** to <strong>text</strong> for highlighting
+        const hl = (text) => text.replace(/\*\*(.+?)\*\*/g, '<strong class="hl">$1</strong>');
+
         if (isDeep) {
             // 5-layer deep learning format
             el.innerHTML = `<div class="lesson lesson-deep">
@@ -104,24 +107,24 @@ const learn = {
                 </div>
                 <div class="deep-layer layer-1" id="deep-layer1">
                     <div class="deep-layer-title">${l.layer1_title || '🌍 为什么要发明这个？'}</div>
-                    <div class="deep-layer-body">${l.layer1.replace(/\n/g, '<br>')}</div>
+                    <div class="deep-layer-body">${hl(l.layer1).replace(/\n/g, '<br>')}</div>
                 </div>
                 <div class="deep-layer layer-2" id="deep-layer2">
                     <div class="deep-layer-title">${l.layer2_title || '🔍 怎么发现的？'}</div>
-                    <div class="deep-layer-body">${l.layer2.replace(/\n/g, '<br>')}</div>
+                    <div class="deep-layer-body">${hl(l.layer2).replace(/\n/g, '<br>')}</div>
                 </div>
                 <div class="deep-layer layer-3" id="deep-layer3">
                     <div class="deep-layer-title">${l.layer3_title || '🧱 核心概念'}</div>
-                    <div class="deep-layer-body">${l.layer3.replace(/\n/g, '<br>')}</div>
+                    <div class="deep-layer-body">${hl(l.layer3).replace(/\n/g, '<br>')}</div>
                 </div>
                 ${l.formula ? `<div class="lesson-section"><h4>📐 公式</h4><div class="lesson-formula">$$${l.formula}$$</div></div>` : ''}
                 <div class="deep-layer layer-4" id="deep-layer4">
                     <div class="deep-layer-title">${l.layer4_title || '🔗 在数学大厦中的位置'}</div>
-                    <div class="deep-layer-body">${l.layer4.replace(/\n/g, '<br>')}</div>
+                    <div class="deep-layer-body">${hl(l.layer4).replace(/\n/g, '<br>')}</div>
                 </div>
                 <div class="deep-layer layer-5" id="deep-layer5">
                     <div class="deep-layer-title">${l.layer5_title || '🛠️ 怎么用？'}</div>
-                    <div class="deep-layer-body">${l.layer5.replace(/\n/g, '<br>')}</div>
+                    <div class="deep-layer-body">${hl(l.layer5).replace(/\n/g, '<br>')}</div>
                 </div>
                 <div class="lesson-section"><h4>💡 例题</h4>${examplesHTML}</div>
                 <div class="lesson-section"><h4>⚠️ 常见错误</h4>${l.traps.map(t => `<div class="lesson-trap">• ${t}</div>`).join('')}</div>
