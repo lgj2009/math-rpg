@@ -1,5 +1,6 @@
 import json
 import uuid
+import random
 from database import get_db
 
 
@@ -18,7 +19,6 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10, la
         (player_id, module_id),
     ).fetchone()
 
-    # Difficulty lock: only increase if accuracy >= 80%
     target_difficulty = 1
     if mastery:
         if mastery["accuracy_avg"] >= 0.80:
@@ -42,43 +42,43 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10, la
         except (json.JSONDecodeError, TypeError, ValueError):
             pass
 
-    # --- Fetch questions excluding already-answered ones ---
-    rows = None
-    if answered_set:
-        placeholders = ",".join("?" * len(answered_set))
-        rows = db.execute(
-            f"""
-            SELECT id, module_id, type, difficulty, content, content_en, content_vi,
-                   options, options_en, options_vi, answer, answer_en, answer_vi,
-                   solution, solution_en, solution_vi, time_limit_sec, source_type, source_ref
-            FROM questions
-            WHERE module_id = ? AND id NOT IN ({placeholders})
-            AND difficulty <= ?
-            ORDER BY RANDOM()
-            LIMIT ?
-            """,
-            (module_id, *list(answered_set), target_difficulty, count),
-        )
-        fetched = rows.fetchall()
-        # If too few available, fall back to ignoring answered filter
-        if len(fetched) < min(3, count):
-            rows = None  # trigger fallback below
-        else:
-            rows = fetched
+    # --- Fetch ALL available questions matching difficulty ---
+    all_rows = db.execute(
+        """
+        SELECT id, module_id, type, difficulty, content, content_en, content_vi,
+               options, options_en, options_vi, answer, answer_en, answer_vi,
+               solution, solution_en, solution_vi, time_limit_sec, source_type, source_ref
+        FROM questions
+        WHERE module_id = ? AND difficulty <= ?
+        ORDER BY RANDOM()
+        """,
+        (module_id, target_difficulty),
+    ).fetchall()
 
-    if rows is None:
-        rows = db.execute(
-            """
-            SELECT id, module_id, type, difficulty, content, content_en, content_vi,
-                   options, options_en, options_vi, answer, answer_en, answer_vi,
-                   solution, solution_en, solution_vi, time_limit_sec, source_type, source_ref
-            FROM questions
-            WHERE module_id = ? AND difficulty <= ?
-            ORDER BY RANDOM()
-            LIMIT ?
-            """,
-            (module_id, target_difficulty, count),
-        ).fetchall()
+    # Split into unanswered and answered pools
+    unanswered = []
+    answered = []
+    for r in all_rows:
+        if r["id"] in answered_set:
+            answered.append(r)
+        else:
+            unanswered.append(r)
+
+    # Build result: prefer unanswered, fill with answered if needed
+    random.shuffle(unanswered)
+    random.shuffle(answered)
+    result = unanswered[:count]
+    if len(result) < count:
+        result.extend(answered[:count - len(result)])
+
+    # Deduplicate by ID (safety net)
+    seen = set()
+    unique = []
+    for r in result:
+        if r["id"] not in seen:
+            seen.add(r["id"])
+            unique.append(r)
+    rows = unique[:count]
 
     # Select translated columns
     content_col = f"content_{lang}" if lang != "zh" else "content"
