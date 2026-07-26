@@ -47,7 +47,7 @@ const settings = {
                         <option value="vi" ${I18N._lang==='vi'?'selected':''}>🇻🇳 Tiếng Việt</option>
                     </select>
                 </div>
-                <div class="setting-item"><span>${t('settings_reset')}</span><button class="btn-danger" onclick="if(confirm('${t('settings_reset_confirm')}')){localStorage.clear();location.reload();}">${t('settings_reset_btn')}</button></div>
+                <div class="setting-item"><span>${t('settings_reset')}</span><button class="btn-danger" onclick="if(confirm('${t('settings_reset_confirm')}')){settings._resetProgress();}">${t('settings_reset_btn')}</button></div>
             </div>
 
             <h2 style="margin-top:32px">💎 会员中心</h2>
@@ -88,6 +88,16 @@ const settings = {
                     现在注册的用户将获得正式版优惠。
                 </div>
             </div>`;
+    },
+
+    async _resetProgress() {
+        const p = App.state.player;
+        if (!p) return;
+        try {
+            await App.post(`/players/${p.id}/reset`);
+            localStorage.clear();
+            location.reload();
+        } catch (e) { App.toast('重置失败: ' + e.message, 'error'); }
     },
 
     async _upgrade(plan) {},
