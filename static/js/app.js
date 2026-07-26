@@ -149,7 +149,7 @@ function showWelcome() {
             </div>
             <form id="auth-form" class="auth-form">
                 <input id="auth-email" type="email" placeholder="Email" required>
-                <input id="auth-username" type="text" placeholder="Username" required>
+                <input id="auth-username" type="text" placeholder="Username">
                 <input id="auth-password" type="password" placeholder="Password" minlength="4" required>
                 <button type="submit" id="auth-btn">Login</button>
             </form>
@@ -169,6 +169,7 @@ function setupAuthForm(mode) {
     const userInput = document.getElementById('auth-username');
     btn.textContent = mode === 'login' ? 'Login' : 'Register';
     userInput.style.display = mode === 'login' ? 'none' : 'block';
+    userInput.required = mode !== 'login';
     form.onsubmit = async (e) => {
         e.preventDefault();
         const email = document.getElementById('auth-email').value.trim();
