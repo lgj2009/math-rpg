@@ -76,7 +76,8 @@ const learn = {
 
     _renderLesson(l) {
         const el = document.getElementById('lesson-content');
-        // Rich lessons have hook, intuition, core, derivation, examples[], connections, practice_hint
+        // Deep lessons have 5 layers (layer1-layer5)
+        const isDeep = !!l.deep;
         const isRich = !!l.hook;
         let examplesHTML = '';
         if (l.examples && Array.isArray(l.examples)) {
@@ -95,40 +96,61 @@ const learn = {
             </div>`;
         }
 
-        el.innerHTML = `<div class="lesson">
-            <div class="lesson-header-row">
-                ${l.textbook_ref ? `<span class="learn-ref">📖 ${l.textbook_ref}</span>` : ''}
-            </div>
-            ${isRich ? `
-                <div class="lesson-hook">💬 ${l.hook}</div>
-                <div class="lesson-intuition"><h4>🧠 直观理解</h4><div class="lesson-text">${l.intuition.replace(/\n/g, '<br>')}</div></div>
-            ` : ''}
-            <div class="lesson-summary">${l.summary}</div>
-            ${isRich ? `<div class="lesson-section"><h4>📖 深入讲解</h4><div class="lesson-text">${l.core.replace(/\n/g, '<br>')}</div></div>` : ''}
-            <div class="lesson-section">
-                <h4>📐 核心公式</h4>
-                <div class="lesson-formula">$$${l.formula}$$</div>
-            </div>
-            ${l.derivation ? `<div class="lesson-section"><h4>🔍 公式推导</h4><div class="lesson-text">${l.derivation.replace(/\n/g, '<br>')}</div></div>` : ''}
-            ${!isRich && l.explanation ? `<div class="lesson-section"><h4>📝 详细说明</h4><div class="lesson-text">${l.explanation.replace(/\n/g, '<br>')}</div></div>` : ''}
-            <div class="lesson-section">
-                <h4>💡 例题</h4>
-                ${examplesHTML}
-            </div>
-            <div class="lesson-section">
-                <h4>⚠️ 常见错误</h4>
-                ${l.traps.map(t => `<div class="lesson-trap">• ${t}</div>`).join('')}
-            </div>
-            ${l.connections ? `<div class="lesson-section"><h4>🔗 知识链接</h4><div class="lesson-text">${l.connections.replace(/\n/g, '<br>')}</div></div>` : ''}
-            ${l.practice_hint ? `<div class="lesson-section"><h4>🎯 解题口诀</h4><div class="lesson-text" style="color:var(--gold)">${l.practice_hint.replace(/\n/g, '<br>')}</div></div>` : ''}
-            ${l.children && l.children.length ? `
-            <div class="lesson-section">
-                <h4>📎 进阶</h4>
-                <div class="learn-children">
-                    ${l.children.map(c => `<span class="learn-child-link" onclick="learn._selectConcept('${c}')">→ ${c}</span>`).join('')}
+        if (isDeep) {
+            // 5-layer deep learning format
+            el.innerHTML = `<div class="lesson lesson-deep">
+                <div class="lesson-header-row">
+                    ${l.textbook_ref ? `<span class="learn-ref">📖 ${l.textbook_ref}</span>` : ''}
                 </div>
-            </div>` : ''}
-        </div>`;
+                <div class="deep-layer layer-1" id="deep-layer1">
+                    <div class="deep-layer-title">${l.layer1_title || '🌍 为什么要发明这个？'}</div>
+                    <div class="deep-layer-body">${l.layer1.replace(/\n/g, '<br>')}</div>
+                </div>
+                <div class="deep-layer layer-2" id="deep-layer2">
+                    <div class="deep-layer-title">${l.layer2_title || '🔍 怎么发现的？'}</div>
+                    <div class="deep-layer-body">${l.layer2.replace(/\n/g, '<br>')}</div>
+                </div>
+                <div class="deep-layer layer-3" id="deep-layer3">
+                    <div class="deep-layer-title">${l.layer3_title || '🧱 核心概念'}</div>
+                    <div class="deep-layer-body">${l.layer3.replace(/\n/g, '<br>')}</div>
+                </div>
+                ${l.formula ? `<div class="lesson-section"><h4>📐 公式</h4><div class="lesson-formula">$$${l.formula}$$</div></div>` : ''}
+                <div class="deep-layer layer-4" id="deep-layer4">
+                    <div class="deep-layer-title">${l.layer4_title || '🔗 在数学大厦中的位置'}</div>
+                    <div class="deep-layer-body">${l.layer4.replace(/\n/g, '<br>')}</div>
+                </div>
+                <div class="deep-layer layer-5" id="deep-layer5">
+                    <div class="deep-layer-title">${l.layer5_title || '🛠️ 怎么用？'}</div>
+                    <div class="deep-layer-body">${l.layer5.replace(/\n/g, '<br>')}</div>
+                </div>
+                <div class="lesson-section"><h4>💡 例题</h4>${examplesHTML}</div>
+                <div class="lesson-section"><h4>⚠️ 常见错误</h4>${l.traps.map(t => `<div class="lesson-trap">• ${t}</div>`).join('')}</div>
+                ${l.children && l.children.length ? `<div class="lesson-section"><h4>📎 进阶</h4><div class="learn-children">${l.children.map(c => `<span class="learn-child-link" onclick="learn._selectConcept('${c}')">→ ${c}</span>`).join('')}</div></div>` : ''}
+            </div>`;
+        } else {
+            el.innerHTML = `<div class="lesson">
+                <div class="lesson-header-row">
+                    ${l.textbook_ref ? `<span class="learn-ref">📖 ${l.textbook_ref}</span>` : ''}
+                </div>
+                ${isRich ? `
+                    <div class="lesson-hook">💬 ${l.hook}</div>
+                    <div class="lesson-intuition"><h4>🧠 直观理解</h4><div class="lesson-text">${l.intuition.replace(/\n/g, '<br>')}</div></div>
+                ` : ''}
+                <div class="lesson-summary">${l.summary}</div>
+                ${isRich ? `<div class="lesson-section"><h4>📖 深入讲解</h4><div class="lesson-text">${l.core.replace(/\n/g, '<br>')}</div></div>` : ''}
+                <div class="lesson-section">
+                    <h4>📐 核心公式</h4>
+                    <div class="lesson-formula">$$${l.formula}$$</div>
+                </div>
+                ${l.derivation ? `<div class="lesson-section"><h4>🔍 公式推导</h4><div class="lesson-text">${l.derivation.replace(/\n/g, '<br>')}</div></div>` : ''}
+                ${!isRich && l.explanation ? `<div class="lesson-section"><h4>📝 详细说明</h4><div class="lesson-text">${l.explanation.replace(/\n/g, '<br>')}</div></div>` : ''}
+                <div class="lesson-section"><h4>💡 例题</h4>${examplesHTML}</div>
+                <div class="lesson-section"><h4>⚠️ 常见错误</h4>${l.traps.map(t => `<div class="lesson-trap">• ${t}</div>`).join('')}</div>
+                ${l.connections ? `<div class="lesson-section"><h4>🔗 知识链接</h4><div class="lesson-text">${l.connections.replace(/\n/g, '<br>')}</div></div>` : ''}
+                ${l.practice_hint ? `<div class="lesson-section"><h4>🎯 解题口诀</h4><div class="lesson-text" style="color:var(--gold)">${l.practice_hint.replace(/\n/g, '<br>')}</div></div>` : ''}
+                ${l.children && l.children.length ? `<div class="lesson-section"><h4>📎 进阶</h4><div class="learn-children">${l.children.map(c => `<span class="learn-child-link" onclick="learn._selectConcept('${c}')">→ ${c}</span>`).join('')}</div></div>` : ''}
+            </div>`;
+        }
         App.renderMath(el);
     },
 };

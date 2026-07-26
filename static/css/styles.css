@@ -689,6 +689,25 @@ h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
 .lesson-section h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
 .lesson-formula { background: linear-gradient(135deg, rgba(240,180,41,0.08), rgba(240,180,41,0.02)); padding: 20px 24px; border-radius: var(--radius-lg); font-size: 16px; overflow-x: auto; line-height: 2.6; border: 1px solid rgba(240,180,41,0.25); box-shadow: 0 0 20px rgba(240,180,41,0.06); font-weight: 500; }
 .lesson-text { font-size: 14px; line-height: 1.9; color: var(--text-secondary); }
+/* ── Deep Lesson Layers ── */
+.deep-layer { margin-bottom: 28px; background: var(--bg-surface); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid rgba(255,255,255,0.04); }
+.layer-1 { border-left: 3px solid #f59e0b; }
+.layer-2 { border-left: 3px solid #3b82f6; }
+.layer-3 { border-left: 3px solid #8b5cf6; }
+.layer-4 { border-left: 3px solid #22c55e; }
+.layer-5 { border-left: 3px solid #ef4444; }
+.deep-layer-title { font-size: 17px; font-weight: 800; padding: 16px 20px 8px; letter-spacing: -0.01em; }
+.layer-1 .deep-layer-title { color: #f59e0b; }
+.layer-2 .deep-layer-title { color: #3b82f6; }
+.layer-3 .deep-layer-title { color: #8b5cf6; }
+.layer-4 .deep-layer-title { color: #22c55e; }
+.layer-5 .deep-layer-title { color: #ef4444; }
+.deep-layer-body { padding: 4px 20px 20px; font-size: 14px; line-height: 2; color: var(--text-secondary); }
+.deep-layer-body table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.deep-layer-body th { text-align: left; padding: 6px 10px; background: rgba(255,255,255,0.04); color: var(--text-primary); font-weight: 700; }
+.deep-layer-body td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.deep-layer-body code { background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+
 .lesson-example { background: var(--bg-surface); padding: 16px; border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.04); }
 .example-q { margin-bottom: 12px; line-height: 1.7; }
 .example-s { margin-bottom: 8px; line-height: 1.8; color: var(--purple); }
