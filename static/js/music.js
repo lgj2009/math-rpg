@@ -1,9 +1,7 @@
 "use strict";
-// NetEase Cloud Music mini player
 const MusicPlayer = {
     _open: false,
-    _currentId: null,
-    _currentTitle: '',
+    _audio: new Audio(),
 
     toggle() {
         this._open = !this._open;
@@ -12,21 +10,20 @@ const MusicPlayer = {
     },
 
     play(songId, title) {
-        this._currentId = songId;
-        this._currentTitle = title;
+        this._audio.pause();
+        // NetEase direct stream — no iframe, no cross-origin issues
+        const url = `https://music.163.com/song/media/outer/url?id=${songId}.mp3`;
+        this._audio.src = url;
+        this._audio.volume = 0.5;
+        this._audio.play().catch(() => {});
         document.getElementById('music-now').textContent = '🎶 ' + title;
-        // NetEase iframe player
-        const iframe = document.getElementById('music-iframe');
-        iframe.style.display = 'block';
-        iframe.style.width = '0'; iframe.style.height = '0';
-        iframe.src = `https://music.163.com/outchain/player?type=2&id=${songId}&auto=1&height=32`;
-        document.getElementById('music-volume').value = 50;
+        // Also pause BGM
+        if (typeof Audio !== 'undefined' && Audio.bgmStop) Audio.bgmStop();
     },
 
     playCustom() {
         const input = document.getElementById('music-id-input').value.trim();
         if (!input) return;
-        // Extract song ID from URL or use raw input
         let id = input;
         const match = input.match(/id=(\d+)/);
         if (match) id = match[1];
@@ -35,22 +32,17 @@ const MusicPlayer = {
     },
 
     control(action) {
-        if (!this._currentId) return;
-        const iframe = document.getElementById('music-iframe');
         if (action === 'pause') {
-            iframe.src = iframe.src.replace('auto=1', 'auto=0');
+            if (this._audio.paused) this._audio.play().catch(()=>{});
+            else this._audio.pause();
         } else if (action === 'stop') {
-            iframe.src = '';
-            iframe.style.display = 'none';
+            this._audio.pause();
+            this._audio.src = '';
             document.getElementById('music-now').textContent = '';
-            this._currentId = null;
         }
     },
 
     setVolume(val) {
-        // Volume for iframe is limited — this is best-effort
-        const iframe = document.getElementById('music-iframe');
-        if (val < 30) iframe.style.display = 'none'; // Can't really control iframe volume
-        else iframe.style.display = 'block';
+        this._audio.volume = val / 100;
     },
 };
