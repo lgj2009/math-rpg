@@ -1,0 +1,222 @@
+{
+  "51": {
+    "content_en": "Given vectors $\\vec{a},\\vec{b}$ satisfy $|\\vec{a}-\\vec{b}|=\\sqrt{3}$, $|\\vec{a}+\\vec{b}|=|2\\vec{a}-\\vec{b}|$, find $|\\vec{b}|=$ ____",
+    "content_vi": "Cho vectơ $\\vec{a},\\vec{b}$ thỏa mãn $|\\vec{a}-\\vec{b}|=\\sqrt{3}$, $|\\vec{a}+\\vec{b}|=|2\\vec{a}-\\vec{b}|$, tìm $|\\vec{b}|=$ ____",
+    "options_en": null,
+    "options_vi": null,
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "Expanding $|\\vec{a}+\\vec{b}|^2=|2\\vec{a}-\\vec{b}|^2$ and combining with $|\\vec{a}-\\vec{b}|^2=3$, we get $|\\vec{b}|=\\sqrt{3}$.",
+    "solution_vi": "Khai triển $|\\vec{a}+\\vec{b}|^2=|2\\vec{a}-\\vec{b}|^2$ kết hợp với $|\\vec{a}-\\vec{b}|^2=3$, giải được $|\\vec{b}|=\\sqrt{3}$."
+  },
+  "52": {
+    "content_en": "In $\\triangle ABC$, point $D$ is on side $AB$ with $BD=2DA$. Let $\\vec{CA}=\\vec{m}$, $\\vec{CD}=\\vec{n}$. Then $\\vec{CB}=$",
+    "content_vi": "Trong $\\triangle ABC$, điểm $D$ trên cạnh $AB$ với $BD=2DA$. Đặt $\\vec{CA}=\\vec{m}$, $\\vec{CD}=\\vec{n}$. Khi đó $\\vec{CB}=$",
+    "options_en": "[\"A. 3\\\\vec{m}-2\\\\vec{n}\",\"B. -2\\\\vec{m}+3\\\\vec{n}\",\"C. 3\\\\vec{m}+2\\\\vec{n}\",\"D. 2\\\\vec{m}+3\\\\vec{n}\"]",
+    "options_vi": "[\"A. 3\\\\vec{m}-2\\\\vec{n}\",\"B. -2\\\\vec{m}+3\\\\vec{n}\",\"C. 3\\\\vec{m}+2\\\\vec{n}\",\"D. 2\\\\vec{m}+3\\\\vec{n}\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "$\\vec{CB}=\\vec{CA}+\\vec{AB}=\\vec{m}+3\\vec{AD}=\\vec{m}+3(\\vec{n}-\\vec{m})=-2\\vec{m}+3\\vec{n}$.",
+    "solution_vi": "$\\vec{CB}=\\vec{CA}+\\vec{AB}=\\vec{m}+3\\vec{AD}=\\vec{m}+3(\\vec{n}-\\vec{m})=-2\\vec{m}+3\\vec{n}$."
+  },
+  "53": {
+    "content_en": "Randomly select 2 different integers from 2 to 8. The probability that they are coprime is",
+    "content_vi": "Chọn ngẫu nhiên 2 số nguyên khác nhau từ 2 đến 8. Xác suất chúng nguyên tố cùng nhau là",
+    "options_en": "[\"A. \\\\frac{1}{6}\",\"B. \\\\frac{1}{3}\",\"C. \\\\frac{1}{2}\",\"D. \\\\frac{2}{3}\"]",
+    "options_vi": "[\"A. \\\\frac{1}{6}\",\"B. \\\\frac{1}{3}\",\"C. \\\\frac{1}{2}\",\"D. \\\\frac{2}{3}\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "Total: $C_7^2=21$. Coprime pairs: (2,3)(2,5)(2,7)(3,4)(3,5)(3,7)(3,8)(4,5)(4,7)(5,6)(5,7)(5,8)(6,7)(7,8)=14. Probability $\\frac{14}{21}=\\frac{2}{3}$.",
+    "solution_vi": "Tổng: $C_7^2=21$. Cặp nguyên tố: (2,3)(2,5)(2,7)(3,4)(3,5)(3,7)(3,8)(4,5)(4,7)(5,6)(5,7)(5,8)(6,7)(7,8)=14. Xác suất $\\frac{14}{21}=\\frac{2}{3}$."
+  },
+  "54": {
+    "content_en": "Given $f(x)=x^3-x+1$, the difference between the max and min of $f(x)$ on $[-2,2]$ is ____",
+    "content_vi": "Cho $f(x)=x^3-x+1$, hiệu giữa GTLN và GTNN của $f(x)$ trên $[-2,2]$ là ____",
+    "options_en": null,
+    "options_vi": null,
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "$f'(x)=3x^2-1$, critical points $x=\\pm\\frac{1}{\\sqrt{3}}$. $f(-2)=-5$, $f(2)=7$. Max=7, Min=-5, diff=12.",
+    "solution_vi": "$f'(x)=3x^2-1$, điểm tới hạn $x=\\pm\\frac{1}{\\sqrt{3}}$. $f(-2)=-5$, $f(2)=7$. GTLN=7, GTNN=-5, hiệu=12."
+  },
+  "55": {
+    "content_en": "Write the equation of a line tangent to both circles $x^2+y^2=1$ and $(x-3)^2+(y-4)^2=16$ ____",
+    "content_vi": "Viết phương trình đường thẳng tiếp xúc với cả hai đường tròn $x^2+y^2=1$ và $(x-3)^2+(y-4)^2=16$ ____",
+    "options_en": null,
+    "options_vi": null,
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "Centers distance=5, radii=1,4. Circles externally tangent. Common tangent: $x=-1$ (tangent to first at $(-1,0)$).",
+    "solution_vi": "Khoảng cách tâm=5, bán kính =1,4. 2 đường tròn tiếp xúc ngoài. Tiếp tuyến chung: $x=-1$ (tx đường tròn thứ nhất tại $(-1,0)$)."
+  },
+  "56": {
+    "content_en": "Let $U=\\{1,2,3,4,5\\}$, $M=\\{1,4\\}$, $N=\\{2,5\\}$. Then $N\\cup \\complement_U M=$",
+    "content_vi": "Cho $U=\\{1,2,3,4,5\\}$, $M=\\{1,4\\}$, $N=\\{2,5\\}$. Khi đó $N\\cup \\complement_U M=$",
+    "options_en": "[\"A. \\\\{2,3,5\\\\}\",\"B. \\\\{1,3,4\\\\}\",\"C. \\\\{1,2,4,5\\\\}\",\"D. \\\\{2,3,4,5\\\\}\"]",
+    "options_vi": "[\"A. \\\\{2,3,5\\\\}\",\"B. \\\\{1,3,4\\\\}\",\"C. \\\\{1,2,4,5\\\\}\",\"D. \\\\{2,3,4,5\\\\}\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "$\\complement_U M=\\{2,3,5\\}$, $N\\cup \\complement_U M=\\{2,3,5\\}$.",
+    "solution_vi": "$\\complement_U M=\\{2,3,5\\}$, $N\\cup \\complement_U M=\\{2,3,5\\}$."
+  },
+  "57": {
+    "content_en": "Let $\\{a_n\\}$ be an arithmetic sequence with sum $S_n$. If $a_1=1$, $S_5=25$, then $a_5=$",
+    "content_vi": "Cho cấp số cộng $\\{a_n\\}$ có tổng $S_n$. Nếu $a_1=1$, $S_5=25$, thì $a_5=$",
+    "options_en": "[\"A. 7\",\"B. 8\",\"C. 9\",\"D. 10\"]",
+    "options_vi": "[\"A. 7\",\"B. 8\",\"C. 9\",\"D. 10\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "$S_5=5a_1+10d=5+10d=25$, so $d=2$. $a_5=a_1+4d=1+8=9$.",
+    "solution_vi": "$S_5=5a_1+10d=5+10d=25$, suy ra $d=2$. $a_5=a_1+4d=1+8=9$."
+  },
+  "58": {
+    "content_en": "In rectangular prism $ABCD-A_1B_1C_1D_1$, $B_1D$ makes $30\\degree$ angles with both plane $ABCD$ and plane $AA_1B_1B$. Then",
+    "content_vi": "Trong hình hộp CN $ABCD-A_1B_1C_1D_1$, $B_1D$ tạo với mặt $ABCD$ và mặt $AA_1B_1B$ cùng góc $30\\degree$. Khi đó",
+    "options_en": "[\"A. AB=2AD\",\"B. AB=\\\\sqrt{3}AD\",\"C. AB=AD\",\"D. AB tạo với mặt AB_1C_1D góc 30\\\\degree\"]",
+    "options_vi": "[\"A. AB=2AD\",\"B. AB=\\\\sqrt{3}AD\",\"C. AB=AD\",\"D. AB tạo với mặt AB_1C_1D góc 30\\\\degree\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "Let $AB=a, AD=b, AA_1=c$. Set up equations and use vector angle formula, obtaining $a=2b$.",
+    "solution_vi": "Đặt $AB=a, AD=b, AA_1=c$. Lập pt và dùng công thức góc vectơ, giải được $a=2b$."
+  },
+  "59": {
+    "content_en": "In $\\triangle ABC$, angles $A,B,C$ have opposite sides $a,b,c$. Given $a=3$, $b=2\\sqrt{6}$, $B=2A$. (1) Find $\\cos A$; (2) Find $c$.",
+    "content_vi": "Trong $\\triangle ABC$, $A,B,C$ có cạnh đối $a,b,c$. Cho $a=3$, $b=2\\sqrt{6}$, $B=2A$. (1) Tìm $\\cos A$; (2) Tìm $c$.",
+    "options_en": null,
+    "options_vi": null,
+    "answer_en": "cosA=√6/3, c=5",
+    "answer_vi": "cosA=√6/3, c=5",
+    "solution_en": "(1) $\\frac{a}{\\sin A}=\\frac{b}{\\sin 2A}$, $\\frac{3}{\\sin A}=\\frac{2\\sqrt{6}}{2\\sin A\\cos A}$, $\\cos A=\\frac{\\sqrt{6}}{3}$. (2) By cos law, $c=5$.",
+    "solution_vi": "(1) $\\frac{a}{\\sin A}=\\frac{b}{\\sin 2A}$, $\\frac{3}{\\sin A}=\\frac{2\\sqrt{6}}{2\\sin A\\cos A}$, $\\cos A=\\frac{\\sqrt{6}}{3}$. (2) Theo đl cos, $c=5$."
+  },
+  "60": {
+    "content_en": "Given $z=1-2i$ and $z+a\\bar{z}+b=0$, where $a,b$ are real, then",
+    "content_vi": "Cho $z=1-2i$ và $z+a\\bar{z}+b=0$, $a,b$ là số thực, thì",
+    "options_en": "[\"A. a=1,b=-2\",\"B. a=-1,b=2\",\"C. a=1,b=2\",\"D. a=-1,b=-2\"]",
+    "options_vi": "[\"A. a=1,b=-2\",\"B. a=-1,b=2\",\"C. a=1,b=2\",\"D. a=-1,b=-2\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "Sub $z=1-2i$, $\\bar{z}=1+2i$. $(1-2i)+a(1+2i)+b=0$. Real: $1+a+b=0$, Imag: $-2+2a=0$. So $a=1,b=-2$.",
+    "solution_vi": "Thay $z=1-2i$, $\\bar{z}=1+2i$. $(1-2i)+a(1+2i)+b=0$. Thực: $1+a+b=0$, Ảo: $-2+2a=0$. Suy ra $a=1,b=-2$."
+  },
+  "61": {
+    "content_en": "Let $F$ be focus of parabola $C: y^2=4x$. $A$ on $C$, $B(3,0)$. If $|AF|=|BF|$, then $|AB|=$",
+    "content_vi": "Gọi $F$ là tiêu điểm parabol $C: y^2=4x$. $A$ trên $C$, $B(3,0)$. Nếu $|AF|=|BF|$, thì $|AB|=$",
+    "options_en": "[\"A. 2\",\"B. 2\\\\sqrt{2}\",\"C. 3\",\"D. 3\\\\sqrt{2}\"]",
+    "options_vi": "[\"A. 2\",\"B. 2\\\\sqrt{2}\",\"C. 3\",\"D. 3\\\\sqrt{2}\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "$F(1,0)$, $|BF|=2$. Let $A(\\frac{y^2}{4},y)$. From $|AF|=2$: $\\frac{y^4}{16}-\\frac{y^2}{2}+1+y^2=4$, solve $A(1,2)$. $|AB|=\\sqrt{4+4}=2\\sqrt{2}$.",
+    "solution_vi": "$F(1,0)$, $|BF|=2$. Đặt $A(\\frac{y^2}{4},y)$. Từ $|AF|=2$: $\\frac{y^4}{16}-\\frac{y^2}{2}+1+y^2=4$, giải $A(1,2)$. $|AB|=\\sqrt{4+4}=2\\sqrt{2}$."
+  },
+  "62": {
+    "content_en": "In expansion of $(1-\\frac{y}{x})(x+y)^8$, coefficient of $x^2y^6$ is ____",
+    "content_vi": "Trong khai triển $(1-\\frac{y}{x})(x+y)^8$, hệ số của $x^2y^6$ là ____",
+    "options_en": null,
+    "options_vi": null,
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "In $(x+y)^8$: $x^3y^5$ coeff=$C_8^5=56$, $x^2y^6$ coeff=$C_8^6=28$. After $(1-\\frac{y}{x})$: coeff=$C_8^6-C_8^5=28-56=-28$.",
+    "solution_vi": "Trong $(x+y)^8$: $x^3y^5$ hệ số=$C_8^5=56$, $x^2y^6$ hệ số=$C_8^6=28$. Sau $(1-\\frac{y}{x})$: hệ số=$C_8^6-C_8^5=28-56=-28$."
+  },
+  "63": {
+    "content_en": "Let $A=\\{x \\mid -2 < x < 4\\}$, $B=\\{2,3,4,5\\}$. Then $A\\cap B=$",
+    "content_vi": "Cho $A=\\{x \\mid -2 < x < 4\\}$, $B=\\{2,3,4,5\\}$. Khi đó $A\\cap B=$",
+    "options_en": "[\"A. \\\\{2\\\\}\",\"B. \\\\{2,3\\\\}\",\"C. \\\\{3,4\\\\}\",\"D. \\\\{2,3,4\\\\}\"]",
+    "options_vi": "[\"A. \\\\{2\\\\}\",\"B. \\\\{2,3\\\\}\",\"C. \\\\{3,4\\\\}\",\"D. \\\\{2,3,4\\\\}\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "$A=(-2,4)$, $A\\cap B=\\{2,3\\}$.",
+    "solution_vi": "$A=(-2,4)$, $A\\cap B=\\{2,3\\}$."
+  },
+  "64": {
+    "content_en": "Which interval is $f(x)=7\\sin(x-\\frac{\\pi}{6})$ increasing on?",
+    "content_vi": "Khoảng nào $f(x)=7\\sin(x-\\frac{\\pi}{6})$ đồng biến?",
+    "options_en": "[\"A. (0,\\\\frac{\\\\pi}{2})\",\"B. (\\\\frac{\\\\pi}{2},\\\\pi)\",\"C. (\\\\pi,\\\\frac{3\\\\pi}{2})\",\"D. (\\\\frac{3\\\\pi}{2},2\\\\pi)\"]",
+    "options_vi": "[\"A. (0,\\\\frac{\\\\pi}{2})\",\"B. (\\\\frac{\\\\pi}{2},\\\\pi)\",\"C. (\\\\pi,\\\\frac{3\\\\pi}{2})\",\"D. (\\\\frac{3\\\\pi}{2},2\\\\pi)\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "$-\\frac{\\pi}{2}+2k\\pi \\leq x-\\frac{\\pi}{6} \\leq \\frac{\\pi}{2}+2k\\pi$. $k=0$: $x\\in[-\\frac{\\pi}{3},\\frac{2\\pi}{3}]$. $(0,\\frac{\\pi}{2})$ inside.",
+    "solution_vi": "$-\\frac{\\pi}{2}+2k\\pi \\leq x-\\frac{\\pi}{6} \\leq \\frac{\\pi}{2}+2k\\pi$. $k=0$: $x\\in[-\\frac{\\pi}{3},\\frac{2\\pi}{3}]$. $(0,\\frac{\\pi}{2})$ nằm trong."
+  },
+  "65": {
+    "content_en": "If two tangents can be drawn from $(a,b)$ to $y=e^x$, then",
+    "content_vi": "Nếu từ $(a,b)$ kẻ được hai tiếp tuyến đến $y=e^x$, thì",
+    "options_en": "[\"A. e^b < a\",\"B. e^a < b\",\"C. 0 < a < e^b\",\"D. 0 < b < e^a\"]",
+    "options_vi": "[\"A. e^b < a\",\"B. e^a < b\",\"C. 0 < a < e^b\",\"D. 0 < b < e^a\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "Tangent at $(x_0,e^{x_0})$: $y-e^{x_0}=e^{x_0}(x-x_0)$. Sub $(a,b)$: $b=e^{x_0}(a-x_0+1)$. Two tangents means two $x_0$ solutions. $0<b<e^a$.",
+    "solution_vi": "Tiếp tuyến tại $(x_0,e^{x_0})$: $y-e^{x_0}=e^{x_0}(x-x_0)$. Thay $(a,b)$: $b=e^{x_0}(a-x_0+1)$. Hai tiếp tuyến = hai nghiệm $x_0$. $0<b<e^a$."
+  },
+  "66": {
+    "content_en": "In regular triangular prism $ABC-A_1B_1C_1$, $AB=AA_1=1$. $P$ satisfies $\\vec{BP}=\\lambda\\vec{BC}+\\mu\\vec{BB_1}$, $\\lambda\\in[0,1]$, $\\mu\\in[0,1]$. Then",
+    "content_vi": "Trong lăng trụ tam giác đều $ABC-A_1B_1C_1$, $AB=AA_1=1$. $P$ thỏa $\\vec{BP}=\\lambda\\vec{BC}+\\mu\\vec{BB_1}$, $\\lambda\\in[0,1]$, $\\mu\\in[0,1]$. Khi đó",
+    "options_en": "[\"A. Khi \\\\lambda=1, chu vi \\\\triangle AB_1P không đổi\",\"B. Khi \\\\mu=1, thể tích P-A_1BC không đổi\",\"C. Khi \\\\lambda=\\\\frac{1}{2}, duy nhất P: A_1P\\\\perp BP\",\"D. Khi \\\\mu=\\\\frac{1}{2}, duy nhất P: A_1B\\\\perp mặt AB_1P\"]",
+    "options_vi": "[\"A. Khi \\\\lambda=1, chu vi \\\\triangle AB_1P không đổi\",\"B. Khi \\\\mu=1, thể tích P-A_1BC không đổi\",\"C. Khi \\\\lambda=\\\\frac{1}{2}, duy nhất P: A_1P\\\\perp BP\",\"D. Khi \\\\mu=\\\\frac{1}{2}, duy nhất P: A_1B\\\\perp mặt AB_1P\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "When $\\mu=1$, $P$ moves on $B_1C_1$. Base area and height of pyramid $P-A_1BC$ constant, so volume constant.",
+    "solution_vi": "Khi $\\mu=1$, $P$ di chuyển trên $B_1C_1$. Diện tích đáy và chiều cao $P-A_1BC$ không đổi, thể tích không đổi."
+  },
+  "67": {
+    "content_en": "Students studying folk paper-cutting: paper folded along symmetry axis. $20dm\\times 12dm$ paper. After 1 fold: 2 shapes $10dm\\times 12dm$, $20dm\\times 6dm$, $S_1=240dm^2$. After 2 folds: 3 shapes $5dm\\times 12dm$, $10dm\\times 6dm$, $20dm\\times 3dm$, $S_2=180dm^2$. How many shapes after 4 folds? ____ After $n$ folds, $\\sum_{k=1}^n S_k =$ ____ $dm^2$.",
+    "content_vi": "HS nghiên cứu cắt giấy dân gian: gấp giấy theo trục đối xứng. Giấy $20dm\\times 12dm$: sau 1 lần gấp được 2 loại $10dm\\times 12dm$, $20dm\\times 6dm$, $S_1=240dm^2$; sau 2 lần: 3 loại $5dm\\times 12dm$, $10dm\\times 6dm$, $20dm\\times 3dm$, $S_2=180dm^2$. Số loại sau 4 lần? ____ Sau $n$ lần, $\\sum_{k=1}^n S_k =$ ____ $dm^2$.",
+    "options_en": null,
+    "options_vi": null,
+    "answer_en": "5, 720(1-1/2^n)",
+    "answer_vi": "5, 720(1-1/2^n)",
+    "solution_en": "After $k$ folds: $k+1$ types. $S_k=240\\times k\\times(\\frac12)^{k-1}$. Sum = $720(1-\\frac1{2^n})$.",
+    "solution_vi": "Sau $k$ lần: $k+1$ loại. $S_k=240\\times k\\times(\\frac12)^{k-1}$. Tổng = $720(1-\\frac1{2^n})$."
+  },
+  "68": {
+    "content_en": "Let angles of $\\triangle ABC$ be $A,B,C$, opposite sides $a,b,c$. $b^2=ac$, $D$ on $AC$: $BD\\sin\\angle ABC=a\\sin C$. (1) Prove $BD=b$. (2) If $AD=2DC$, find $\\cos\\angle ABC$.",
+    "content_vi": "Góc $\\triangle ABC$ là $A,B,C$, cạnh đối $a,b,c$. $b^2=ac$, $D$ trên $AC$: $BD\\sin\\angle ABC=a\\sin C$. (1) CM $BD=b$. (2) Nếu $AD=2DC$, tìm $\\cos\\angle ABC$.",
+    "options_en": null,
+    "options_vi": null,
+    "answer_en": "See proof, cos∠ABC=7/12",
+    "answer_vi": "Xem CM, cos∠ABC=7/12",
+    "solution_en": "(1) $\\frac{BD}{\\sin C}=\\frac{a}{\\sin\\angle BDC}$, with condition, prove $BD=b$. (2) Cos law: $\\cos\\angle ABC=\\frac{7}{12}$.",
+    "solution_vi": "(1) $\\frac{BD}{\\sin C}=\\frac{a}{\\sin\\angle BDC}$, kết hợp đk, CM $BD=b$. (2) Đl cos: $\\cos\\angle ABC=\\frac{7}{12}$."
+  },
+  "69": {
+    "content_en": "5 Beijing Winter Olympics volunteers to 4 events (fig skating, short track, hockey, curling). Each to 1 event, each event at least 1. Number of plans:",
+    "content_vi": "5 TNV Olympic Mùa đông Bắc Kinh vào 4 môn (trượt băng NT, trượt tốc độ, khúc côn cầu, bi đá). Mỗi người 1 môn, mỗi môn ít nhất 1. Số cách:",
+    "options_en": "[\"A. 60 cách\",\"B. 120 cách\",\"C. 240 cách\",\"D. 480 cách\"]",
+    "options_vi": "[\"A. 60 cách\",\"B. 120 cách\",\"C. 240 cách\",\"D. 480 cách\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "Group then assign. 5 into 4 groups (one group of 2). Choose 2: $C_5^2=10$. Permute 4 groups: $4!=24$. Total $10\\times24=240$.",
+    "solution_vi": "Nhóm rồi phân. 5 vào 4 nhóm (1 nhóm 2). Chọn 2: $C_5^2=10$. Xếp 4 nhóm: $4!=24$. Tổng $10\\times24=240$."
+  },
+  "70": {
+    "content_en": "6 students to 3 venues A, B, C. Each to 1 venue. A gets 1, B gets 2, C gets 3. Number of arrangements:",
+    "content_vi": "6 HS đến 3 địa điểm A, B, C. Mỗi người 1 địa điểm. A nhận 1, B 2, C 3. Số cách:",
+    "options_en": "[\"A. 120 cách\",\"B. 90 cách\",\"C. 60 cách\",\"D. 30 cách\"]",
+    "options_vi": "[\"A. 120 cách\",\"B. 90 cách\",\"C. 60 cách\",\"D. 30 cách\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "$C_6^1\\times C_5^2\\times C_3^3 = 6\\times10\\times1 = 60$.",
+    "solution_vi": "$C_6^1\\times C_5^2\\times C_3^3 = 6\\times10\\times1 = 60$."
+  },
+  "71": {
+    "content_en": "96% of students like football or swimming, 60% like football, 82% like swimming. % who like both:",
+    "content_vi": "96% HS thích bóng đá hoặc bơi, 60% thích bóng đá, 82% thích bơi. % thích cả hai:",
+    "options_en": "[\"A. 62%\",\"B. 56%\",\"C. 46%\",\"D. 42%\"]",
+    "options_vi": "[\"A. 62%\",\"B. 56%\",\"C. 46%\",\"D. 42%\"]",
+    "answer_en": null,
+    "answer_vi": null,
+    "solution_en": "$P(F\\cup S)=P(F)+P(S)-P(F\\cap S)$. $96\\%=60\\%+82\\%-P(F\\cap S)$, so $P(F\\cap S)=46\\%$.",
+    "solution_vi": "$P(F\\cup S)=P(F)+P(S)-P(F\\cap S)$. $96\\%=60\\%+82\\%-P(F\\cap S)$, suy ra $P(F\\cap S)=46\\%$."
+  },
+  "72": {
+    "content_en": "Ellipse $C: \\frac{x^2}{a^2}+\\frac{y^2}{b^2}=1(a>b>0)$ eccentricity $\\frac{\\sqrt{3}}{2}$, $F_1,F_2$ left/right foci, $A$ top vertex, $\\overrightarrow{AF_1}\\cdot\\overrightarrow{AF_2} = -1$. Equation of $C$: ____",
+    "content_vi": "Elip $C: \\frac{x^2}{a^2}+\\frac{y^2}{b^2}=1(a>b>0)$ tâm sai $\\frac{\\sqrt{3}}{2}$, $F_1,F_2$ tiêu điểm T/P, $A$ đỉnh trên, $\\overrightarrow{AF_1}\\cdot\\overrightarrow{AF_2} = -1$. PT $C$: ____",
+    "options_en": null,
+    "options_vi": null,
+    "answer_en": "x²/4+y²=1",
+    "answer_vi": "x²/4+y²=1",
+    "solution_en": "$e=c/a=\\sqrt{3}/2$. Let $a=2k,c=\\sqrt{3}k$, $b=k$. $A(0,k)$, $F_{1,2}=(\\pm\\sqrt{3}k,0)$. Dot=$-3k^2+k^2=-2k^2=-1$, so $k=1$. $a=2,b=1$.",
+    "solution_vi": "$e=c/a=\\sqrt{3}/2$. Đặt $a=2k,c=\\sqrt{3}k$, $b=k$. $A(0,k)$, $F_{1,2}=(\\pm\\sqrt{3}k,0)$. Tích vh=$-3k^2+k^2=-2k^2=-1$, $k=1$. $a=2,b=1$."
+  }
+}
