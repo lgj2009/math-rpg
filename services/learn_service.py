@@ -326,14 +326,20 @@ def get_concept_tree():
 
 def get_lesson(concept_name: str) -> dict | None:
     """Return the full lesson for a concept, preferring rich lessons."""
-    # Try rich lessons first, fall back to basic
+    # Try rich lessons (core), then extended, then basic
     try:
         from services.rich_lessons import RICH_LESSONS
         if concept_name in RICH_LESSONS:
             lesson = RICH_LESSONS[concept_name]
             return _build_lesson_response(concept_name, lesson)
-    except ImportError:
-        pass
+    except ImportError: pass
+
+    try:
+        from services.rich_lessons_ext import EXT_LESSONS
+        if concept_name in EXT_LESSONS:
+            lesson = EXT_LESSONS[concept_name]
+            return _build_lesson_response(concept_name, lesson)
+    except ImportError: pass
 
     lesson = CONCEPT_LESSONS.get(concept_name)
     if not lesson:
