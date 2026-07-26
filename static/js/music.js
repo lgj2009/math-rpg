@@ -21,8 +21,8 @@ const MusicPlayer = {
         document.getElementById('music-now').textContent = '🎶 ' + title;
         const container = document.getElementById('music-embed-container');
         // Bilibili embed — works in China
-        container.innerHTML = `<iframe width="100%" height="166"
-            src="https://player.bilibili.com/player.html?bvid=${videoId}&autoplay=1&danmaku=0&high_quality=1"
+        container.innerHTML = `<iframe width="100%" height="200"
+            src="https://player.bilibili.com/player.html?bvid=${videoId}&autoplay=1&danmaku=0&high_quality=1&volume=0.5"
             frameborder="0" allow="autoplay" scrolling="no">
         </iframe>`;
         if (typeof SFX !== 'undefined' && SFX.bgmStop) SFX.bgmStop();
@@ -46,5 +46,17 @@ const MusicPlayer = {
         document.getElementById('music-embed-container').innerHTML = '';
         document.getElementById('music-now').textContent = '';
         this._videoId = null;
+    },
+
+    setVolume(val) {
+        // Bilibili iframe volume — reload with new volume param
+        if (this._videoId) {
+            const container = document.getElementById('music-embed-container');
+            const v = val / 100;
+            container.innerHTML = `<iframe width="100%" height="200"
+                src="https://player.bilibili.com/player.html?bvid=${this._videoId}&autoplay=0&danmaku=0&high_quality=1&volume=${v}"
+                frameborder="0" allow="autoplay" scrolling="no">
+            </iframe>`;
+        }
     },
 };
