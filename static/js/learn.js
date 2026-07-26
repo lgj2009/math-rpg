@@ -76,7 +76,21 @@ const learn = {
 
     _renderLesson(l) {
         const el = document.getElementById('lesson-content');
-        // Deep lessons have 5 layers (layer1-layer5)
+        // Visual Novel mode — highest priority
+        if (l.vn_script) {
+            el.innerHTML = '';
+            const vnContainer = document.createElement('div');
+            el.appendChild(vnContainer);
+            VN.start(l.vn_script, vnContainer, () => {
+                // After VN finishes, show the rest of the lesson
+                this._showLessonContent(el, l);
+            });
+            return;
+        }
+        this._showLessonContent(el, l);
+    },
+
+    _showLessonContent(el, l) {
         const isDeep = !!l.deep;
         const isRich = !!l.hook;
         let examplesHTML = '';
