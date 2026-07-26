@@ -19,7 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
 </head>
 <body>
-    <button id="mode-toggle" onclick="document.body.classList.toggle('mobile-mode');this.textContent=document.body.classList.contains('mobile-mode')?'📱':'🖥️'" title="切换手机/桌面模式">📱</button>
+    <button id="mode-toggle" onclick="document.body.classList.toggle('mobile-mode');this.textContent=document.body.classList.contains('mobile-mode')?'📱 手机':'🖥️ 桌面'" title="切换手机/桌面模式" style="position:fixed;bottom:16px;right:16px;z-index:999;padding:8px 14px;border-radius:20px;border:2px solid var(--gold);background:var(--bg-surface);color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.4)">切换</button>
     <nav id="mobile-tabbar">
         <div class="mtab active" data-page="dashboard">📊<span>冒险</span></div>
         <div class="mtab" data-page="learn">📖<span>学艺</span></div>
