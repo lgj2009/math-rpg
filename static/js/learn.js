@@ -212,9 +212,14 @@ const learn = {
                 this._loadNote(this._activeConcept);
                 this._notesLoaded = true;
             }
-            // If this is layer 3, init the canvas
-            if (id === 3) {
-                setTimeout(() => this._animateSecantToTangent(), 400);
+            // Init the right canvas for this concept's layer 3
+            if (id === 3 && this._activeConcept) {
+                setTimeout(() => {
+                    const name = this._activeConcept;
+                    if (name.includes('正弦')) this._animateSineLaw();
+                    else if (name.includes('等差')) this._animateArithmeticSeq();
+                    else this._animateSecantToTangent();
+                }, 400);
             }
         }
     },
@@ -247,10 +252,9 @@ const learn = {
 
     _startSecantCanvas() {
         if (!document.getElementById('visual-canvas')) return;
-        const infoText = document.getElementById('visual-info');
-        const txt = infoText ? infoText.textContent || '' : '';
-        if (txt.includes('拖动三角形')) this._animateSineLaw();
-        else if (txt.includes('拖动 d')) this._animateArithmeticSeq();
+        const name = this._activeConcept || '';
+        if (name.includes('正弦')) this._animateSineLaw();
+        else if (name.includes('等差')) this._animateArithmeticSeq();
         else this._animateSecantToTangent();
     },
 
