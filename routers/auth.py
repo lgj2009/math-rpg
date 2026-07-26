@@ -51,7 +51,7 @@ class ForgotBody(BaseModel):
 def forgot_password(body: ForgotBody):
     result = auth_service.forgot_password(body.email.strip())
     if "detail" in result:
-        raise HTTPException(404, result["detail"])
+        return {"ok": False, "message": result["detail"]}
     return result
 
 
