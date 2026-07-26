@@ -233,10 +233,14 @@ const learn = {
             const xB = xA + 2.5 * (1 - t); // starts at x=3.5, ends at x=1
             const yB = fx(xB);
             const bx = toCanvasX(xB), by = toCanvasY(yB);
+            const dxB = xB - xA;
             ctx.fillStyle = '#3b82f6'; ctx.beginPath();
-            ctx.arc(bx, by, 6, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#3b82f6'; ctx.font = 'bold 13px system-ui';
-            ctx.fillText(`B(${xB.toFixed(2)},${yB.toFixed(2)})`, bx+10, by-10);
+            ctx.arc(bx, by, 5, 0, Math.PI*2); ctx.fill();
+            // Only show B label when it's not too close to A
+            if (dxB > 0.15) {
+                ctx.fillStyle = '#3b82f6'; ctx.font = 'bold 13px system-ui';
+                ctx.fillText(`B(${xB.toFixed(2)},${yB.toFixed(2)})`, bx+10, by-10);
+            }
 
             // Secant line AB
             const dxB = xB - xA;
