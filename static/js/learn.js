@@ -243,7 +243,6 @@ const learn = {
             }
 
             // Secant line AB
-            const dxB = xB - xA;
             if (dxB > 0.02) {
                 // Extend secant line beyond A and B
                 const extendLeft = toCanvasX(xA - 0.5);
