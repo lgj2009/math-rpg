@@ -37,6 +37,14 @@ app.include_router(guild_router)
 @app.on_event("startup")
 def startup():
     init_db()
+    # Auto-seed if DB is empty (handles Railway ephemeral storage)
+    from database import get_db
+    db = get_db()
+    count = db.execute("SELECT COUNT(*) FROM modules").fetchone()[0]
+    db.close()
+    if count == 0:
+        from seed_data import seed
+        seed()
 
 
 @app.get("/")
