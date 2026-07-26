@@ -231,7 +231,7 @@ function setupAuthForm(mode) {
 // Auto-start BGM on first user interaction (browser policy)
 let _bgmStarted = false;
 document.addEventListener('click', () => {
-    if (!_bgmStarted) { Audio.bgmStart(); _bgmStarted = true; }
+    if (!_bgmStarted) { SFX.bgmStart(); _bgmStarted = true; }
 }, { once: true });
 
 window.addEventListener('DOMContentLoaded', () => {

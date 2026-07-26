@@ -162,15 +162,15 @@ const practice = {
                 <span class="fb-xp">+${result.xp_gained} XP</span>
                 ${result.combo >= 3 ? `<span class="fb-combo">🔥${result.combo}连击!</span>` : ''}
             </div>`;
-            Audio.beep && Audio.beep(600, 0.08);
-            if (result.crit) Audio.beep && Audio.beep(900, 0.12);
+            SFX.beep && SFX.beep(600, 0.08);
+            if (result.crit) SFX.beep && SFX.beep(900, 0.12);
         } else {
             fb.innerHTML = `<div class="fb-wrong">
                 <span class="fb-icon">❌</span>
                 <span>正确答案: <b>${result.correct_answer}</b></span>
                 ${result.solution ? `<div class="fb-solution">💡 ${result.solution}</div>` : ''}
             </div>`;
-            Audio.beep && Audio.beep(200, 0.2);
+            SFX.beep && SFX.beep(200, 0.2);
         }
         App.renderMath(fb);
 

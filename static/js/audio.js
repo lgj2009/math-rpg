@@ -1,5 +1,5 @@
 "use strict";
-const Audio = {
+const SFX = {
     ctx: null, _bgmOn: false, _bgmNodes: [], _bgmGain: null,
 
     _init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },

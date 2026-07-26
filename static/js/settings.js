@@ -14,7 +14,7 @@ const settings = {
     },
 
     _toggleBGM() {
-        const on = Audio.bgmToggle();
+        const on = SFX.bgmToggle();
         const btn = document.getElementById('bgm-btn');
         if (btn) btn.textContent = on ? '🔊 开启' : '🔇 关闭';
     },
@@ -28,7 +28,7 @@ const settings = {
                 <div class="setting-item"><span>${t('settings_theme')}</span><span>${t('settings_theme_val')}</span></div>
                 <div class="setting-item">
                     <span>${t('settings_sound')}</span>
-                    <button class="btn-retry" onclick="settings._toggleBGM()" id="bgm-btn">${Audio.bgmIsOn() ? '🔊 开启' : '🔇 关闭'}</button>
+                    <button class="btn-retry" onclick="settings._toggleBGM()" id="bgm-btn">${SFX.bgmIsOn() ? '🔊 开启' : '🔇 关闭'}</button>
                 </div>
                 <div class="setting-item">
                     <span>🔑 修改密码</span>

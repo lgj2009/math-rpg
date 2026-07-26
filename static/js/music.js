@@ -1,7 +1,9 @@
 "use strict";
 const MusicPlayer = {
     _open: false,
-    _audio: new Audio(),
+    _audio: null,
+
+    _init() { if (!this._audio) this._audio = new window.Audio(); },
 
     toggle() {
         this._open = !this._open;
@@ -10,6 +12,7 @@ const MusicPlayer = {
     },
 
     play(songId, title) {
+        this._init();
         this._audio.pause();
         // NetEase direct stream — no iframe, no cross-origin issues
         const url = `https://music.163.com/song/media/outer/url?id=${songId}.mp3`;
@@ -32,6 +35,7 @@ const MusicPlayer = {
     },
 
     control(action) {
+        this._init();
         if (action === 'pause') {
             if (this._audio.paused) this._audio.play().catch(()=>{});
             else this._audio.pause();

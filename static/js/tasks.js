@@ -60,7 +60,7 @@ const tasks = {
                 `/players/${App.state.player.id}/tasks/${taskId}/complete`,
                 { actual_time_min: 0 }
             );
-            Audio.levelUp();
+            SFX.levelUp();
             if (result.xp_gained) {
                 App.toast(`任务完成! +${result.xp_gained} XP`, 'success');
             } else {
