@@ -99,6 +99,15 @@ const practice = {
         });
     },
 
+    _shareVictory(title, score, accuracy) {
+        const text = `⚔️ ${title}！\n📊 得分: ${score} | 正确率: ${accuracy}\n🎮 Math RPG — 把数学变成RPG\n🔗 https://math-rpg-production.up.railway.app\n#高中数学 #游戏化学习`;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => App.toast('已复制分享文案！去小红书/B站/朋友圈粘贴', 'success'));
+        } else {
+            App.toast(text, 'info');
+        }
+    },
+
     _startCritTimer() {
         const el = document.getElementById('crit-timer');
         if (!el) return;
@@ -221,6 +230,7 @@ const practice = {
                 <div id="gacha-container"></div>
                 ${reviewHTML}
                 <button class="btn-primary" onclick="practice.render()">返回狩猎场</button>
+                <button class="btn-secondary" onclick="practice._shareVictory('${f.title_emoji} ${f.title}', '${f.correct}/${f.total}', '${pct}%')" style="margin-top:8px">📤 分享战绩</button>
             </div>`;
         App.renderMath(main);
 
