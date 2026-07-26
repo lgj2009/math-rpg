@@ -84,12 +84,15 @@ const VN = {
             quizEl.innerHTML = `
                 <div class="vn-quiz-q">${q.question}</div>
                 <input id="vn-quiz-input" type="text" class="vn-quiz-input" placeholder="${q.placeholder || '输入答案...'}">
-                <button class="vn-quiz-btn" id="vn-quiz-submit">确认</button>
+                <div class="vn-quiz-btn" id="vn-quiz-submit">确认</div>
                 <div id="vn-quiz-feedback"></div>`;
-            document.getElementById('vn-quiz-submit').onclick = (e) => {
-                e.stopPropagation();
-                this._checkQuiz();
-            };
+            const quizBtn = document.getElementById('vn-quiz-submit');
+            if (quizBtn) {
+                quizBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this._checkQuiz();
+                });
+            }
             this._quizAnswer = q.answer;
             this._quizCorrectJump = q.correct_jump;
             this._quizWrongJump = q.wrong_jump;
@@ -102,17 +105,18 @@ const VN = {
         if (line.choices) {
             indicator.style.display = 'none';
             textEl.textContent = line.text || '';
-            choicesEl.innerHTML = line.choices.map((c, i) =>
-                `<button class="vn-choice" data-idx="${i}">${c.label}</button>`
-            ).join('');
-            // Use event delegation — more reliable than inline onclick
-            choicesEl.onclick = (e) => {
-                const btn = e.target.closest('.vn-choice');
-                if (!btn) return;
-                e.stopPropagation();
-                const idx = parseInt(btn.dataset.idx);
-                this._choose(idx);
-            };
+            choicesEl.innerHTML = '';
+            line.choices.forEach((c, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'vn-choice';
+                btn.textContent = c.label;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this._choose(i);
+                });
+                choicesEl.appendChild(btn);
+            });
             this._el.onclick = null;
         } else {
             indicator.style.display = 'block';
