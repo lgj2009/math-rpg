@@ -733,7 +733,9 @@ strong.hl { color: var(--gold); font-weight: 800; background: linear-gradient(18
 
 .vn-char-left, .vn-char-right {
     position: absolute; bottom: 140px; transition: all 0.5s ease; opacity: 0; transform: translateY(20px);
+    pointer-events: none; /* Don't block clicks on the dialog box */
 }
+.vn-sprite { pointer-events: none; }
 .vn-char-left { left: 40px; }
 .vn-char-right { right: 40px; }
 .vn-char-left.active, .vn-char-right.active { opacity: 1; transform: translateY(0); }
@@ -743,7 +745,7 @@ strong.hl { color: var(--gold); font-weight: 800; background: linear-gradient(18
 .vn-sprite-name { font-size: 11px; color: var(--text-secondary); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
 
 .vn-dialog-box {
-    position: absolute; bottom: 0; left: 0; right: 0; min-height: 120px;
+    position: absolute; bottom: 0; left: 0; right: 0; min-height: 120px; z-index: 10;
     background: linear-gradient(180deg, rgba(15,23,42,0.85), rgba(15,23,42,0.95));
     border-top: 1px solid rgba(255,255,255,0.08); padding: 18px 24px 14px;
     backdrop-filter: blur(8px);
