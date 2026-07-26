@@ -142,7 +142,9 @@ const learn = {
                 <div class="lesson-section"><h4>💡 例题</h4>${examplesHTML}</div>
                 <div class="lesson-section"><h4>⚠️ 常见错误</h4>${l.traps.map(t => `<div class="lesson-trap">• ${t}</div>`).join('')}</div>
                 ${l.children && l.children.length ? `<div class="lesson-section"><h4>📎 进阶</h4><div class="learn-children">${l.children.map(c => `<span class="learn-child-link" onclick="learn._selectConcept('${c}')">→ ${c}</span>`).join('')}</div></div>` : ''}
+                <div class="lesson-section"><h4>📝 我的批注</h4><textarea id="concept-note" class="fb-textarea" placeholder="写下你对这个知识点的理解..." rows="3"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn-primary" onclick="learn._saveNote('${l.name}')">保存</button><span id="note-status" style="font-size:12px;color:var(--text-secondary)"></span></div>
             </div>`;
+            setTimeout(() => this._loadNote(l.name), 100);
         } else {
             el.innerHTML = `<div class="lesson">
                 <div class="lesson-header-row">
@@ -202,6 +204,26 @@ const learn = {
                 setTimeout(() => this._animateSecantToTangent(), 400);
             }
         }
+    },
+
+    async _loadNote(conceptName) {
+        const p = App.state.player; if (!p) return;
+        try {
+            const data = await App.get(`/notes/${p.id}/${encodeURIComponent(conceptName)}`);
+            const ta = document.getElementById('concept-note');
+            if (ta) ta.value = data.note_text || '';
+        } catch(e) {}
+    },
+
+    async _saveNote(conceptName) {
+        const p = App.state.player; if (!p) return;
+        const ta = document.getElementById('concept-note');
+        const status = document.getElementById('note-status');
+        if (!ta) return;
+        try {
+            await App.post('/notes/save', { player_id: p.id, concept_name: conceptName, note_text: ta.value });
+            if (status) { status.textContent = '✅ 已保存'; setTimeout(() => status.textContent = '', 2000); }
+        } catch(e) { if (status) status.textContent = '❌ 保存失败'; }
     },
 
     _startSecantCanvas() {
