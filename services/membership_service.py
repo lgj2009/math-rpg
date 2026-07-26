@@ -1,7 +1,13 @@
 """Membership system — plan management, Stripe integration, feature gating."""
-import json, os, stripe
+import json, os
 from datetime import datetime, timedelta
 from database import get_db
+
+try:
+    import stripe
+    STRIPE_AVAILABLE = True
+except ImportError:
+    STRIPE_AVAILABLE = False
 
 # Membership plans
 PLANS = {
@@ -99,6 +105,9 @@ def create_checkout_session(player_id: int, plan: str, billing: str, success_url
     price_id = plan_info.get(price_key)
     if not price_id:
         return {"detail": f"No Stripe price for {plan} {billing}"}
+
+    if not STRIPE_AVAILABLE:
+        return {"detail": "Stripe not configured. Install stripe package and set API key."}
 
     try:
         session = stripe.checkout.Session.create(
