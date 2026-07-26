@@ -118,6 +118,16 @@ def validate_session(token: str) -> dict | None:
     }
 
 
+def change_password(user_id: int, old_password: str, new_password: str) -> dict:
+    db = get_db()
+    user = db.execute("SELECT password_hash FROM users WHERE id=?", (user_id,)).fetchone()
+    if not user or user["password_hash"] != _hash(old_password):
+        db.close(); return {"detail": "Current password is incorrect"}
+    db.execute("UPDATE users SET password_hash=? WHERE id=?", (_hash(new_password), user_id))
+    db.commit(); db.close()
+    return {"ok": True, "message": "Password changed"}
+
+
 def forgot_password(email: str) -> dict:
     """Generate a reset code and update the user's password to it."""
     db = get_db()

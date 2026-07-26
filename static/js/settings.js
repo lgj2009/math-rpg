@@ -1,5 +1,18 @@
 "use strict";
 const settings = {
+    async _changePw() {
+        const oldPw = document.getElementById('pw-old').value;
+        const newPw = document.getElementById('pw-new').value;
+        if (!oldPw || !newPw) { App.toast('请输入旧密码和新密码', 'warning'); return; }
+        if (newPw.length < 4) { App.toast('新密码至少4位', 'warning'); return; }
+        try {
+            await App.post('/auth/change-password', { old_password: oldPw, new_password: newPw });
+            App.toast('密码修改成功', 'success');
+            document.getElementById('pw-old').value = '';
+            document.getElementById('pw-new').value = '';
+        } catch (e) { App.toast(e.message, 'error'); }
+    },
+
     _toggleBGM() {
         const on = Audio.bgmToggle();
         const btn = document.getElementById('bgm-btn');
@@ -16,6 +29,14 @@ const settings = {
                 <div class="setting-item">
                     <span>${t('settings_sound')}</span>
                     <button class="btn-retry" onclick="settings._toggleBGM()" id="bgm-btn">${Audio.bgmIsOn() ? '🔊 开启' : '🔇 关闭'}</button>
+                </div>
+                <div class="setting-item">
+                    <span>🔑 修改密码</span>
+                    <span style="display:flex;gap:4px">
+                        <input id="pw-old" type="password" placeholder="旧密码" style="width:80px;padding:4px 8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:var(--bg-field);color:var(--text-primary);font-size:12px">
+                        <input id="pw-new" type="password" placeholder="新密码" style="width:80px;padding:4px 8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:var(--bg-field);color:var(--text-primary);font-size:12px">
+                        <button class="btn-retry" onclick="settings._changePw()" style="font-size:11px;padding:4px 8px">保存</button>
+                    </span>
                 </div>
                 <div class="setting-item"><span>${t('settings_count')}</span><span>${t('settings_count_val')}</span></div>
                 <div class="setting-item">

@@ -55,6 +55,25 @@ def forgot_password(body: ForgotBody):
     return result
 
 
+class ChangePasswordBody(BaseModel):
+    old_password: str
+    new_password: str = Field(..., min_length=4, max_length=100)
+
+
+@router.post("/change-password")
+def change_password(body: ChangePasswordBody, authorization: str = Header(None)):
+    token = authorization[7:] if authorization and authorization.startswith("Bearer ") else None
+    if not token:
+        raise HTTPException(401, "Not authenticated")
+    user = auth_service.validate_session(token)
+    if not user:
+        raise HTTPException(401, "Invalid session")
+    result = auth_service.change_password(user["user_id"], body.old_password, body.new_password)
+    if "detail" in result:
+        raise HTTPException(400, result["detail"])
+    return result
+
+
 @router.get("/me")
 def me(authorization: str = Header(None)):
     token = None
