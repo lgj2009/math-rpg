@@ -177,6 +177,8 @@ const learn = {
     },
 
     // ── Secant → Tangent Animation ──────────────────────────────────
+    _startSecantCanvas() { this._animateSecantToTangent(); },
+
     _animateSecantToTangent() {
         const canvas = document.getElementById('visual-canvas');
         if (!canvas) return;
