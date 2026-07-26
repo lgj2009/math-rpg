@@ -301,14 +301,15 @@ def init_db():
         created_at TEXT DEFAULT (datetime('now'))
     )""")
 
-    # Concept notes — user annotations
+    # Concept notes — per-layer user annotations
     cur.execute("""CREATE TABLE IF NOT EXISTS concept_notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         player_id INTEGER NOT NULL,
         concept_name TEXT NOT NULL,
+        layer_id INTEGER NOT NULL DEFAULT 0,
         note_text TEXT NOT NULL DEFAULT '',
         updated_at TEXT DEFAULT (datetime('now')),
-        UNIQUE(player_id, concept_name)
+        UNIQUE(player_id, concept_name, layer_id)
     )""")
 
     # Auth tables

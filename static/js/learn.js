@@ -59,6 +59,7 @@ const learn = {
     // ─── Lesson Detail ──────────────────────────────────────────────
     async _selectConcept(name) {
         this._activeConcept = name;
+        this._notesLoaded = false;
         const el = document.getElementById('page-learn');
         el.innerHTML = `
             <div class="learn-header">
@@ -129,7 +130,14 @@ const learn = {
                         <span class="layer-lock">🔒</span> ${ly.title}
                         <span class="layer-hint">${hint}</span>
                     </div>
-                    <div class="deep-layer-body" style="display:none">${hl(ly.body).replace(/\n/g, '<br>')}</div>
+                    <div class="deep-layer-body" style="display:none">
+                        ${hl(ly.body).replace(/\n/g, '<br>')}
+                        <div class="layer-note-area">
+                            <textarea class="layer-note-input" id="note-layer-${ly.id}" placeholder="💬 写下你对这一层的理解..." rows="3"></textarea>
+                            <button class="btn-retry" onclick="learn._saveLayerNote('${l.name}',${ly.id})" style="font-size:11px;padding:4px 10px;margin-top:4px">保存批注</button>
+                            <span id="note-status-${ly.id}" style="font-size:11px;color:var(--text-muted)"></span>
+                        </div>
+                    </div>
                 </div>`;
             }).join('');
 
@@ -199,6 +207,11 @@ const learn = {
             if (hint) hint.textContent = '已解锁';
             body.scrollIntoView({ behavior: 'smooth', block: 'center' });
             App.renderMath(body);
+            // Load notes for this concept if not already loaded
+            if (this._activeConcept && !this._notesLoaded) {
+                this._loadNote(this._activeConcept);
+                this._notesLoaded = true;
+            }
             // If this is layer 3, init the canvas
             if (id === 3) {
                 setTimeout(() => this._animateSecantToTangent(), 400);
@@ -210,21 +223,27 @@ const learn = {
         const p = App.state.player; if (!p) return;
         try {
             const data = await App.get(`/notes/${p.id}/${encodeURIComponent(conceptName)}`);
-            const ta = document.getElementById('concept-note');
-            if (ta) ta.value = data.note_text || '';
+            // Load each layer's note
+            for (let i = 1; i <= 5; i++) {
+                const ta = document.getElementById(`note-layer-${i}`);
+                const layerData = data[String(i)];
+                if (ta && layerData) ta.value = layerData.note_text || '';
+            }
         } catch(e) {}
     },
 
-    async _saveNote(conceptName) {
+    async _saveLayerNote(conceptName, layerId) {
         const p = App.state.player; if (!p) return;
-        const ta = document.getElementById('concept-note');
-        const status = document.getElementById('note-status');
+        const ta = document.getElementById(`note-layer-${layerId}`);
+        const status = document.getElementById(`note-status-${layerId}`);
         if (!ta) return;
         try {
-            await App.post('/notes/save', { player_id: p.id, concept_name: conceptName, note_text: ta.value });
-            if (status) { status.textContent = '✅ 已保存'; setTimeout(() => status.textContent = '', 2000); }
-        } catch(e) { if (status) status.textContent = '❌ 保存失败'; }
+            await App.post('/notes/save', { player_id: p.id, concept_name: conceptName, layer_id: layerId, note_text: ta.value });
+            if (status) { status.textContent = '✅'; setTimeout(() => status.textContent = '', 2000); }
+        } catch(e) { if (status) status.textContent = '❌'; }
     },
+
+    async _saveNote(conceptName) {}, // kept for old bottom-note reference
 
     _startSecantCanvas() {
         if (!document.getElementById('visual-canvas')) return;

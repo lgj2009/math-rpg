@@ -735,6 +735,9 @@ body.mobile-mode .vn-choice { font-size: 14px; padding: 12px 14px; }
 .deep-layer.unlocked { opacity: 1; }
 .deep-layer.unlocked .deep-layer-body { animation: layer-reveal 0.4s ease; }
 @keyframes layer-reveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.layer-note-area { margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; }
+.layer-note-input { padding: 10px 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); background: var(--bg-field); color: var(--text-primary); font-size: 13px; outline: none; resize: vertical; font-family: var(--font-body); line-height: 1.6; }
+.layer-note-input:focus { border-color: var(--gold); }
 .layer-1 .deep-layer-title { color: #f59e0b; }
 .layer-2 .deep-layer-title { color: #3b82f6; }
 .layer-3 .deep-layer-title { color: #8b5cf6; }
