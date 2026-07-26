@@ -1,9 +1,10 @@
 "use strict";
-// mistakes.js — Mistake book, monster gallery, and due-today attack queue
 const mistakes = {
     currentTab: 'list',
 
     async render() {
+        const p = App.state.player;
+        if (!p) { document.getElementById('page-mistakes').innerHTML = '<div class="empty-state"><p>⚠️ 请先创建角色</p></div>'; return; }
         const el = document.getElementById('page-mistakes');
         if (!el) return;
         el.innerHTML = `
@@ -13,13 +14,9 @@ const mistakes = {
                 <button class="tab-btn" data-tab="due">⚔️ 今日讨伐</button>
             </div>
             <div id="mistakes-content" class="mistakes-content"></div>`;
-
-        // Tab switching
         el.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
         });
-
-        // Load module mapping for human-readable names
         this._moduleMap = await this._fetchModuleMap();
         await this.switchTab('list');
     },
@@ -29,8 +26,8 @@ const mistakes = {
         document.querySelectorAll('.tab-btn').forEach(b =>
             b.classList.toggle('active', b.dataset.tab === tab));
         const content = document.getElementById('mistakes-content');
+        if (!content) return;
         content.innerHTML = '<div class="loading">⏳ 加载中...</div>';
-
         try {
             if (tab === 'list') await this.renderMistakeList(content);
             else if (tab === 'gallery') await this.renderGallery(content);
@@ -41,210 +38,167 @@ const mistakes = {
     },
 
     async _fetchModuleMap() {
-        try {
-            const modules = await App.get('/modules');
-            const map = {};
-            modules.forEach(m => { map[m.id] = m; });
-            return map;
-        } catch (_) {
-            return {};
-        }
+        try { const mods = await App.get('/modules'); const m = {}; mods.forEach(x => { m[x.id] = x; }); return m; }
+        catch (_) { return {}; }
     },
 
-    // ─── Tab 1: Mistake List ────────────────────────────────────────
+    // ═══════════ Tab 1: 错题列表 (三问法) ═══════════
 
     async renderMistakeList(container) {
         const pid = App.state.player.id;
-        const mistakesData = await App.get(`/players/${pid}/mistakes`);
-
-        if (!mistakesData || mistakesData.length === 0) {
+        const data = await App.get(`/players/${pid}/mistakes`);
+        if (!data || data.length === 0) {
             container.innerHTML = '<div class="empty-state">🎉 暂无错题记录</div>';
             return;
         }
-
         let html = '<div class="mistake-grid">';
-        mistakesData.forEach(m => {
+        data.forEach(m => {
             const mod = this._moduleMap[m.module_id];
-            const modName = mod ? `${mod.icon || ''} ${mod.name}` : `模块 #${m.module_id}`;
-            const badge = this._errorTypeBadge(m.error_type);
-            const statusText = m.mastered
-                ? '<span class="mistake-status mastered">✅ 已掌握</span>'
-                : `<span class="mistake-status pending">🔄 已重试 ${m.retry_count} 次</span>`;
+            const modName = mod ? `${mod.icon || ''} ${mod.name}` : `模块#${m.module_id}`;
+            const badge = this._errorBadge(m.error_type);
+            const dots = m.mastered ? '🟢 已掌握' : `🔄 ${m.retry_count}/2 次重试`;
 
-            html += `
-                <div class="mistake-card">
-                    <div class="mistake-header">
-                        <span class="mistake-module">${modName}</span>
-                        ${badge}
-                    </div>
-                    <div class="mistake-question">${m.question}</div>
-                    <div class="mistake-footer">
-                        ${statusText}
-                        <span class="mistake-date">${this._formatDate(m.created_date)}</span>
-                    </div>
-                    ${!m.mastered ? `<button class="btn-retry" onclick="mistakes.retryMistake(${m.id})">🔁 重做</button>` : ''}
-                </div>`;
+            html += `<div class="mistake-card ${m.mastered ? 'mastered' : ''}">
+                <div class="mc-header">
+                    <span class="mc-module">${modName}</span>${badge}
+                    <span class="mc-status">${dots}</span>
+                </div>
+                <div class="mc-question">${m.question}</div>
+                <div class="mc-sections">
+                    <div class="mc-field"><span class="mc-label">❌ 错在哪：</span>${m.wrong_step || '未记录'}</div>
+                    <div class="mc-field"><span class="mc-label">✅ 正解：</span>${m.correct_thought || '未记录'}</div>
+                    <div class="mc-field"><span class="mc-label">📌 考点：</span>${m.knowledge_point || '未标记'}</div>
+                </div>
+                <div class="mc-footer">
+                    <span class="mc-date">${this._fmtDate(m.created_date)}</span>
+                    ${!m.mastered ? `<button class="btn-retry" onclick="mistakes.startRetry(${m.id})">🔁 重做</button>` : ''}
+                </div>
+            </div>`;
         });
         html += '</div>';
         container.innerHTML = html;
+        App.renderMath(container);
     },
 
-    _errorTypeBadge(errorType) {
-        const labels = {
-            calculation: '计算错误',
-            logic: '逻辑错误',
-            knowledge_gap: '知识漏洞',
-        };
-        const label = labels[errorType] || errorType || '未知';
-        return `<span class="error-badge error-${errorType || 'unknown'}">${label}</span>`;
+    _errorBadge(type) {
+        const m = { calculation: '🔢计算', logic: '🧠逻辑', knowledge_gap: '📖知识漏洞' };
+        const c = { calculation: 'badge-calc', logic: 'badge-logic', knowledge_gap: 'badge-gap' };
+        return `<span class="error-badge ${c[type] || ''}">${m[type] || type || '未知'}</span>`;
     },
 
-    _formatDate(dateStr) {
-        if (!dateStr) return '';
-        const d = new Date(dateStr);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    },
+    _fmtDate(d) { if (!d) return ''; const t = new Date(d); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; },
 
-    // ─── Tab 2: Monster Gallery ─────────────────────────────────────
+    // ═══════════ Tab 2: 怪物图鉴 ═══════════
 
     async renderGallery(container) {
         const pid = App.state.player.id;
         const spots = await App.get(`/players/${pid}/blind-spots`);
-
         if (!spots || spots.length === 0) {
             container.innerHTML = '<div class="empty-state">🎉 暂无活跃怪物，继续刷题吧！</div>';
             return;
         }
-
         let html = '<div class="boss-grid">';
-        spots.forEach(spot => {
-            html += Components.bossCard(spot);
-        });
+        spots.forEach(s => { html += Components.bossCard(s); });
         html += '</div>';
         container.innerHTML = html;
+        App.renderMath(container);
     },
 
-    // ─── Tab 3: Due Today ───────────────────────────────────────────
+    // ═══════════ Tab 3: 今日讨伐 ═══════════
 
     async renderDueToday(container) {
         const pid = App.state.player.id;
         const rounds = await App.get(`/players/${pid}/blind-spots/due-today`);
-
         if (!rounds || rounds.length === 0) {
             container.innerHTML = '<div class="empty-state">🎉 今日没有待讨伐的怪物，休息一下吧！</div>';
             return;
         }
-
         let html = '<div class="due-queue">';
         rounds.forEach(r => {
-            const hpBar = r.hp_current > 0
-                ? `<span class="due-hp">❤️ ${r.hp_current} HP</span>`
-                : '<span class="due-hp slain">💀 已讨伐</span>';
-            const status = r.spot_status === 'cleared'
-                ? '<span class="due-status done">✅ 已完成</span>'
-                : '<span class="due-status active">⚔️ 待讨伐</span>';
-
-            html += `
-                <div class="due-item" data-blind-spot-id="${r.blind_spot_id}" data-round="${r.round}">
-                    <div class="due-header">
-                        <span class="due-spot-name">${r.spot_name}</span>
-                        ${hpBar}
-                        ${status}
-                    </div>
-                    <div class="due-question">${r.question}</div>
-                    <div class="due-action">
-                        <input type="text" class="due-answer-input" placeholder="输入你的答案..." id="due-answer-${r.id}">
-                        <button class="btn-attack" onclick="mistakes.submitDueAnswer(${r.id}, ${r.blind_spot_id}, ${r.round})">⚔️ 提交答案</button>
-                    </div>
-                </div>`;
+            const roundLabel = {1:'第1轮·今日', 2:'第2轮·第2天', 3:'第3轮·第7天', 4:'第4轮·第21天'}[r.round] || `第${r.round}轮`;
+            html += `<div class="due-item">
+                <div class="due-header">
+                    <span class="due-spot-name">🐉 ${r.spot_name}</span>
+                    <span class="due-round">${roundLabel}</span>
+                </div>
+                <div class="due-question">${r.question}</div>
+                <div class="due-action">
+                    <input type="text" class="due-answer-input" placeholder="输入答案..." id="da-${r.id}">
+                    <button class="btn-attack" onclick="mistakes.submitDueAnswer(${r.id},${r.blind_spot_id},${r.round})">⚔️ 攻击</button>
+                </div>
+            </div>`;
         });
         html += '</div>';
         container.innerHTML = html;
+        App.renderMath(container);
     },
 
     async submitDueAnswer(roundId, blindSpotId, roundNumber) {
-        const input = document.getElementById(`due-answer-${roundId}`);
-        if (!input || !input.value.trim()) {
-            App.toast('请输入答案', 'warning');
-            return;
-        }
-        const answer = input.value.trim();
-        input.disabled = true;
-
+        const inp = document.getElementById(`da-${roundId}`);
+        if (!inp || !inp.value.trim()) { App.toast('请输入答案', 'warning'); return; }
+        inp.disabled = true;
         try {
-            const result = await App.post(
-                `/players/${App.state.player.id}/blind-spots/${blindSpotId}/attack`,
-                { answer, round_number: roundNumber }
-            );
-            App.toast(
-                result.boss_killed
-                    ? `🎉 讨伐成功！造成 ${result.damage} 伤害，BOSS已消灭！`
-                    : `⚔️ 造成 ${result.damage} 伤害，剩余 ${result.hp_remaining} HP`,
-                result.boss_killed ? 'success' : 'info'
-            );
-            if (result.xp_gained > 0) {
-                App.toast(`+${result.xp_gained} XP`, 'success');
-            }
+            const result = await App.post(`/players/${App.state.player.id}/blind-spots/${blindSpotId}/attack`,
+                { answer: inp.value.trim(), round_number: roundNumber });
+            App.toast(result.boss_killed ? '🎉 Boss消灭！' : `⚔️ 造成${result.damage}伤害，HP剩余${result.hp_remaining}`, result.boss_killed ? 'success' : 'info');
+            if (result.xp_gained) App.toast(`+${result.xp_gained} XP`, 'success');
             App.refreshPlayer();
-            // Refresh the due-today view
-            const content = document.getElementById('mistakes-content');
-            await this.renderDueToday(content);
-        } catch (e) {
-            App.toast('攻击失败: ' + e.message, 'error');
-            input.disabled = false;
-        }
+            const c = document.getElementById('mistakes-content');
+            if (this.currentTab === 'due') await this.renderDueToday(c);
+        } catch (e) { App.toast('失败: ' + e.message, 'error'); inp.disabled = false; }
     },
-
-    // ─── Boss Attack from Gallery ───────────────────────────────────
 
     async attackBoss(blindSpotId) {
-        // Check if there are due-today rounds for this boss
         try {
-            const pid = App.state.player.id;
-            const rounds = await App.get(`/players/${pid}/blind-spots/due-today`);
-            const pending = rounds.filter(r => r.blind_spot_id === blindSpotId);
-
-            if (pending.length > 0) {
-                // Navigate to due-today tab with context
-                this.switchTab('due');
-                App.toast('请先在今日讨伐中作答', 'info');
-            } else {
-                // No pending rounds — inform the user
-                App.toast('当前怪物没有待讨伐的轮次，请等待下次复测日', 'warning');
-            }
-        } catch (e) {
-            App.toast('查询失败: ' + e.message, 'error');
-        }
+            const rounds = await App.get(`/players/${App.state.player.id}/blind-spots/due-today`);
+            if (rounds.some(r => r.blind_spot_id === blindSpotId)) { this.switchTab('due'); App.toast('请在上方作答', 'info'); }
+            else App.toast('暂无待讨伐轮次，等待复测日', 'warning');
+        } catch (e) { App.toast('查询失败: ' + e.message, 'error'); }
     },
 
-    async retryMistake(mistakeId) {
-        // Open a modal for self-graded retry
-        const answer = await Components.modal(
-            '🔁 重做错题',
-            '请重新解答这道题，提交后系统将自动判断掌握情况。',
-            [{ label: '我答对了 ✅', value: 'correct' }, { label: '我还不会 ❌', value: 'wrong' }]
-        );
-        if (!answer) return;
+    // ═══════════ 重做错题 (真正答题) ═══════════
 
+    startRetry(mistakeId) {
+        // Fetch the mistake to get question text
+        App.get(`/players/${App.state.player.id}/mistakes`).then(data => {
+            const m = data.find(x => x.id === mistakeId);
+            if (!m) { App.toast('错题未找到', 'error'); return; }
+            const el = document.getElementById('page-mistakes');
+            el.innerHTML = `
+                <div class="retry-screen">
+                    <h3>🔁 重做错题</h3>
+                    <div class="retry-question">${m.question}</div>
+                    <div class="retry-hint">
+                        <span>❌ 上次错误：</span>${m.wrong_step || '未记录'}
+                    </div>
+                    <input type="text" id="retry-answer" class="answer-input" placeholder="输入你的答案..." autofocus>
+                    <div class="retry-buttons">
+                        <button class="btn-primary" onclick="mistakes.submitRetry(${mistakeId})">提交答案</button>
+                        <button class="btn-secondary" onclick="mistakes.render()">返回</button>
+                    </div>
+                </div>`;
+            document.getElementById('retry-answer').addEventListener('keydown', e => {
+                if (e.key === 'Enter') this.submitRetry(mistakeId);
+            });
+        });
+    },
+
+    async submitRetry(mistakeId) {
+        const inp = document.getElementById('retry-answer');
+        if (!inp || !inp.value.trim()) { App.toast('请输入答案', 'warning'); return; }
+        inp.disabled = true;
         try {
-            const result = await App.post(
-                `/players/${App.state.player.id}/mistakes/${mistakeId}/retry`,
-                { answer: answer === 'correct' ? 'correct' : 'wrong' }
-            );
+            const result = await App.post(`/players/${App.state.player.id}/mistakes/${mistakeId}/retry`,
+                { answer: inp.value.trim() });
             if (result.mastered) {
-                App.toast('🎉 太棒了！这道题你已经掌握了！', 'success');
+                App.toast('🎉 连续答对！这道题已掌握！', 'success');
+                Audio.bossKill && Audio.bossKill();
             } else {
-                App.toast(`已提交 (第 ${result.retry_count} 次重试)，继续努力！`, 'info');
+                App.toast(`已记录 (第${result.retry_count}/2次重试)，继续加油！`, 'info');
             }
-            if (result.xp_gained > 0) {
-                App.toast(`+${result.xp_gained} XP`, 'success');
-            }
+            if (result.xp_gained) App.toast(`+${result.xp_gained} XP`, 'success');
             App.refreshPlayer();
-            // Re-render the mistake list to update status
-            const content = document.getElementById('mistakes-content');
-            await this.renderMistakeList(content);
-        } catch (e) {
-            App.toast('提交失败: ' + e.message, 'error');
-        }
+            this.render();
+        } catch (e) { App.toast('提交失败: ' + e.message, 'error'); inp.disabled = false; }
     },
 };

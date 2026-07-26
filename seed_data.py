@@ -312,11 +312,12 @@ SEED_QUESTIONS = [
      "已知向量 $\\vec{a}=(1,2)$，$\\vec{b}=(2,1)$，求 $\\vec{a}$ 与 $\\vec{b}$ 夹角 $\\theta$ 的余弦值",
      None, "4/5", "$\\vec{a}\\cdot\\vec{b}=1\\times2+2\\times1=4$，$|\\vec{a}|=|\\vec{b}|=\\sqrt{5}$，$\\cos\\theta=\\frac{4}{\\sqrt{5}\\cdot\\sqrt{5}}=\\frac{4}{5}$", 90,
      None, None, "generated", None),
+
 ]
 
 
 def _seed_questions(cur):
-    """Seed 41 questions across all 8 modules."""
+    """Seed base questions, then load real exam questions."""
     cols = "(module_id, pattern_id, type, difficulty, concepts, step_count, has_trap, content, options, answer, solution, time_limit_sec, variant_of, variant_axis, source_type, source_ref)"
     for q in SEED_QUESTIONS:
         cur.execute(f"INSERT OR IGNORE INTO questions {cols} VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", q)
@@ -346,6 +347,22 @@ def seed():
 
     # Questions
     _seed_questions(cur)
+
+    # Also load real exam questions
+    try:
+        from add_exam_questions import EXAM_QUESTIONS, _seed_exam_questions
+        _seed_exam_questions(cur, EXAM_QUESTIONS)
+        print("  Exam questions loaded.")
+    except ImportError:
+        pass
+
+    # Also load expanded curated questions
+    try:
+        from expand_questions import EXPAND_QUESTIONS
+        _seed_exam_questions(cur, EXPAND_QUESTIONS)
+        print("  Curated questions loaded.")
+    except ImportError:
+        pass
 
     db.commit()
     db.close()

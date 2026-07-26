@@ -71,15 +71,17 @@ def retry_mistake(player_id: int, mistake_id: int, user_answer: str) -> dict:
     m = db.execute("SELECT * FROM mistakes WHERE id=? AND player_id=?", (mistake_id, player_id)).fetchone()
     if not m:
         return {"detail": "not found"}
-
-    # Check answer against stored question (for retry, user re-does the original — we trust self-grade)
-    # OR connect to original question answer if available
-    # For now: user self-grades via a separate field
     m = dict(m)
+
+    # Try to find the correct answer by matching question text in questions table
+    is_correct = None  # None = can't determine, trust self-grade later
+    qrow = db.execute("SELECT answer FROM questions WHERE content=? LIMIT 1", (m["question"],)).fetchone()
+    if qrow:
+        is_correct = str(user_answer).strip() == str(qrow["answer"]).strip()
+
     new_retry = m["retry_count"] + 1
-    # Store that retry happened
-    db.execute("UPDATE mistakes SET retry_count=?, last_retry_date=date('now'), last_retry_correct=1 WHERE id=?",
-               (new_retry, mistake_id))
+    db.execute("UPDATE mistakes SET retry_count=?, last_retry_date=date('now'), last_retry_correct=? WHERE id=?",
+               (new_retry, 1 if is_correct else 0, mistake_id))
 
     # Check mastery: 2 consecutive correct retries
     if new_retry >= 2:
@@ -106,7 +108,13 @@ def retry_mistake(player_id: int, mistake_id: int, user_answer: str) -> dict:
                (refund, player_id))
     db.commit()
 
-    # Award XP for retry
-    xp_res = award_xp(player_id, config.XP_MISTAKE_RETRY)
+    # Award XP for retry (only if correct)
+    xp_gained = config.XP_MISTAKE_RETRY if is_correct else 10
+    award_xp(player_id, xp_gained)
 
-    return {"retry_count": new_retry, "mastered": new_retry >= 2, "xp_gained": config.XP_MISTAKE_RETRY}
+    return {
+        "retry_count": new_retry,
+        "mastered": new_retry >= 2,
+        "is_correct": is_correct,
+        "xp_gained": xp_gained
+    }

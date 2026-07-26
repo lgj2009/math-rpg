@@ -62,3 +62,12 @@ GUILD_INACTIVE_DAYS = 3
 # Near-miss trigger
 NEAR_MISS_MIN = 0.85
 NEAR_MISS_MAX = 0.94
+
+# Feedback email (QQ SMTP)
+# 在QQ邮箱→设置→账户→POP3/SMTP服务 中开启并获取授权码
+SMTP_ENABLED = True
+SMTP_HOST = "smtp.qq.com"
+SMTP_PORT = 465
+SMTP_USER = "1483361098@qq.com"
+SMTP_PASSWORD = "YOUR_QQ_AUTH_CODE"  # 替换为QQ邮箱授权码
+SMTP_TO = "1483361098@qq.com"

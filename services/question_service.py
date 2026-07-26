@@ -3,7 +3,7 @@ import uuid
 from database import get_db
 
 
-def get_questions_for_module(module_id: int, player_id: int, count: int = 10) -> list:
+def get_questions_for_module(module_id: int, player_id: int, count: int = 10, lang: str = "zh") -> list:
     """Return questions matched to the player's difficulty level.
 
     Excludes questions the player has already answered in any past practice
@@ -18,11 +18,12 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10) ->
         (player_id, module_id),
     ).fetchone()
 
+    # Difficulty lock: only increase if accuracy >= 80%
     target_difficulty = 1
     if mastery:
         if mastery["accuracy_avg"] >= 0.80:
             target_difficulty = 2
-        if mastery["accuracy_avg"] >= 0.90 and mastery["status"] == "practicing":
+        if mastery["accuracy_avg"] >= 0.90 and mastery["status"] in ("practicing", "mastered"):
             target_difficulty = 3
 
     # --- Collect IDs of questions the player has already answered ---
@@ -42,34 +43,74 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10) ->
             pass
 
     # --- Fetch questions excluding already-answered ones ---
+    rows = None
     if answered_set:
         placeholders = ",".join("?" * len(answered_set))
         rows = db.execute(
             f"""
-            SELECT id, module_id, type, difficulty, content, options, time_limit_sec
+            SELECT id, module_id, type, difficulty, content, content_en, content_vi,
+                   options, options_en, options_vi, answer, answer_en, answer_vi,
+                   solution, solution_en, solution_vi, time_limit_sec, source_type, source_ref
             FROM questions
             WHERE module_id = ? AND id NOT IN ({placeholders})
-            ORDER BY ABS(difficulty - ?), RANDOM()
+            AND difficulty <= ?
+            ORDER BY RANDOM()
             LIMIT ?
             """,
             (module_id, *list(answered_set), target_difficulty, count),
         )
-    else:
+        fetched = rows.fetchall()
+        # If too few available, fall back to ignoring answered filter
+        if len(fetched) < min(3, count):
+            rows = None  # trigger fallback below
+        else:
+            rows = fetched
+
+    if rows is None:
         rows = db.execute(
             """
-            SELECT id, module_id, type, difficulty, content, options, time_limit_sec
+            SELECT id, module_id, type, difficulty, content, content_en, content_vi,
+                   options, options_en, options_vi, answer, answer_en, answer_vi,
+                   solution, solution_en, solution_vi, time_limit_sec, source_type, source_ref
             FROM questions
-            WHERE module_id = ?
-            ORDER BY ABS(difficulty - ?), RANDOM()
+            WHERE module_id = ? AND difficulty <= ?
+            ORDER BY RANDOM()
             LIMIT ?
             """,
             (module_id, target_difficulty, count),
-        )
+        ).fetchall()
+
+    # Select translated columns
+    content_col = f"content_{lang}" if lang != "zh" else "content"
+    options_col = f"options_{lang}" if lang != "zh" else "options"
+    answer_col = f"answer_{lang}" if lang != "zh" else "answer"
+    solution_col = f"solution_{lang}" if lang != "zh" else "solution"
 
     questions = []
-    for r in rows.fetchall():
+    for r in rows:
         q = dict(r)
-        q["options"] = json.loads(q["options"]) if q.get("options") else None
+        # Use translated content if available, fall back to Chinese
+        if lang != "zh":
+            q["content"] = r[content_col] or r["content"]
+            raw_opts = r[options_col] or r["options"]
+            q["answer"] = r[answer_col] or r["answer"]
+            q["solution"] = r[solution_col] or r["solution"]
+        else:
+            raw_opts = q.get("options")
+
+        if raw_opts:
+            try:
+                q["options"] = json.loads(raw_opts)
+            except (json.JSONDecodeError, TypeError):
+                raw = str(raw_opts)
+                if raw.startswith('[') and raw.endswith(']'):
+                    import re
+                    parts = re.findall(r'"([^"]*)"', raw)
+                    q["options"] = parts if parts else [raw]
+                else:
+                    q["options"] = [raw]
+        else:
+            q["options"] = None
         questions.append(q)
     return questions
 

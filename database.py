@@ -46,6 +46,7 @@ def init_db():
         """CREATE TABLE IF NOT EXISTS modules (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
+            name_en TEXT, name_vi TEXT,
             weight INTEGER NOT NULL DEFAULT 10,
             tier INTEGER NOT NULL DEFAULT 1,
             sort_order INTEGER NOT NULL DEFAULT 0,
@@ -171,17 +172,7 @@ def init_db():
             active INTEGER DEFAULT 1
         )""",
 
-        # 12. guilds (公会)
-        """CREATE TABLE IF NOT EXISTS guilds (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            daily_xp INTEGER DEFAULT 0,
-            weekly_xp INTEGER DEFAULT 0,
-            members TEXT NOT NULL DEFAULT '[]',
-            created_date TEXT DEFAULT (datetime('now'))
-        )""",
-
-        # 13. cosmetic_drops_log (掉落播报)
+        # 12. cosmetic_drops_log (掉落播报)
         """CREATE TABLE IF NOT EXISTS cosmetic_drops_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             player_id INTEGER NOT NULL,
@@ -216,9 +207,13 @@ def init_db():
             step_count INTEGER DEFAULT 1,
             has_trap INTEGER DEFAULT 0,
             content TEXT NOT NULL,
+            content_en TEXT, content_vi TEXT,
             options TEXT,
+            options_en TEXT, options_vi TEXT,
             answer TEXT NOT NULL,
+            answer_en TEXT, answer_vi TEXT,
             solution TEXT,
+            solution_en TEXT, solution_vi TEXT,
             time_limit_sec INTEGER,
             variant_of INTEGER,
             variant_axis TEXT,
@@ -256,5 +251,73 @@ def init_db():
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_questions_content "
         "ON questions(module_id, content)"
     )
+
+    # Guild tables
+    cur.execute("""CREATE TABLE IF NOT EXISTS guilds (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        description TEXT DEFAULT '',
+        owner_id INTEGER NOT NULL,
+        member_count INTEGER DEFAULT 1,
+        daily_xp INTEGER DEFAULT 0,
+        weekly_xp INTEGER DEFAULT 0,
+        boss_hp INTEGER DEFAULT 500,
+        boss_max_hp INTEGER DEFAULT 500,
+        created_at TEXT DEFAULT (datetime('now'))
+    )""")
+    cur.execute("""CREATE TABLE IF NOT EXISTS guild_members (
+        guild_id INTEGER NOT NULL,
+        player_id INTEGER NOT NULL,
+        role TEXT DEFAULT 'member',
+        weekly_xp INTEGER DEFAULT 0,
+        joined_at TEXT DEFAULT (datetime('now')),
+        PRIMARY KEY (guild_id, player_id)
+    )""")
+    cur.execute("""CREATE TABLE IF NOT EXISTS guild_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id INTEGER NOT NULL,
+        player_id INTEGER NOT NULL,
+        username TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at TEXT DEFAULT (datetime('now'))
+    )""")
+    cur.execute("""CREATE TABLE IF NOT EXISTS guild_activity (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id INTEGER NOT NULL,
+        player_id INTEGER NOT NULL,
+        username TEXT NOT NULL,
+        action TEXT NOT NULL,
+        detail TEXT DEFAULT '',
+        xp INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now'))
+    )""")
+
+    # Auth tables
+    cur.execute("""CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL UNIQUE,
+        username TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at TEXT DEFAULT (datetime('now'))
+    )""")
+    cur.execute("""CREATE TABLE IF NOT EXISTS sessions (
+        token TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        player_id INTEGER,
+        expires_at TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )""")
+
+    # Feedback table
+    cur.execute("""CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        player_id INTEGER,
+        username TEXT,
+        category TEXT DEFAULT 'general',
+        message TEXT NOT NULL,
+        page TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+    )""")
+
     conn.commit()
     conn.close()

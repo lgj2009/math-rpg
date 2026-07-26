@@ -40,10 +40,24 @@ class PracticeSubmit(BaseModel):
     time_used_sec: int
 
 
+class PerQuestionResult(BaseModel):
+    question_id: int
+    content: str
+    type: str
+    difficulty: int
+    user_answer: str
+    correct_answer: str
+    solution: str
+    is_correct: bool
+
 class PracticeResult(BaseModel):
     total: int
     correct: int
+    wrong: int = 0
     accuracy: float
     xp_gained: int
     near_miss: bool
     gacha_result: dict
+    per_question: list[dict] = []
+    mistakes_created: int = 0
+    tasks_auto_done: int = 0

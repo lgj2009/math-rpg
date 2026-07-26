@@ -8,6 +8,8 @@ const App = {
 
     async api(method, path, body) {
         const opts = { method, headers: { 'Content-Type': 'application/json' } };
+        const token = localStorage.getItem('authToken');
+        if (token) opts.headers['Authorization'] = 'Bearer ' + token;
         if (body) opts.body = JSON.stringify(body);
         const res = await fetch(`${this.baseURL}${path}`, opts);
         if (!res.ok) {
@@ -41,9 +43,61 @@ const App = {
         window.location.hash = page;
         this._navigating = false;
         // Auto-render page module
-        const renderers = { dashboard, tasks, practice, mistakes, progress, guild, season, achievements, settings };
+        const noPlayerPages = ['settings'];
+        if (!this.state.player && !noPlayerPages.includes(page)) {
+            target && (target.innerHTML = '<div class="empty-state"><p>⚠️ 请先创建角色</p></div>');
+            return;
+        }
+        const renderers = { dashboard, tasks, learn, practice, mistakes, progress, guild, bank, season, achievements, settings };
         if (renderers[page] && typeof renderers[page].render === 'function') {
             renderers[page].render();
+        }
+        // Render KaTeX after page content loads (delay for async render)
+        setTimeout(() => this.renderMath(), 200);
+    },
+
+    renderMath(el) {
+        if (typeof katex === 'undefined') return;
+        const target = el || document;
+        // Simple approach: find ALL text nodes, process $...$ and bare LaTeX
+        const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT, null);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+
+        for (const node of nodes) {
+            const text = node.textContent;
+            const parent = node.parentElement;
+            if (!parent || parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE' || parent.closest('.katex')) continue;
+
+            let html = text;
+            let changed = false;
+
+            // Replace $...$ with rendered KaTeX
+            if (text.includes('$')) {
+                const regex = /\$([^$]+)\$/g;
+                let m;
+                while ((m = regex.exec(text)) !== null) {
+                    try {
+                        const rendered = katex.renderToString(m[1], { throwOnError: false });
+                        html = html.replace(m[0], rendered);
+                        changed = true;
+                    } catch(e) {}
+                }
+            }
+
+            // If no $ delimiters but has LaTeX commands, render whole thing
+            if (!text.includes('$') && /\\[a-zA-Z]+/.test(text)) {
+                try {
+                    html = katex.renderToString(text, { throwOnError: false });
+                    changed = true;
+                } catch(e) {}
+            }
+
+            if (changed) {
+                const span = document.createElement('span');
+                span.innerHTML = html;
+                parent.replaceChild(span, node);
+            }
         }
     },
 
@@ -68,44 +122,99 @@ const App = {
         const xpBar = document.getElementById('sidebar-xp-bar');
         if (xpBar) xpBar.innerHTML = Components.xpBar(p);
     },
+
+    t(key) { return I18N.t(key); },
 };
 
-window.addEventListener('DOMContentLoaded', () => {
-    const page = window.location.hash.slice(1) || 'dashboard';
-    // Check for existing player (localStorage playerId)
-    const pid = localStorage.getItem('playerId');
-    if (pid) {
-        App.get(`/players/${pid}`).then(p => {
-            App.state.player = p;
+function showWelcome() {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('playerId');
+    App.state.player = null;
+    const dash = document.getElementById('page-dashboard');
+    if (!dash) return;
+    dash.classList.add('active');
+    dash.innerHTML = `
+        <div class="welcome-screen">
+            <h1>⚔️ Math RPG</h1>
+            <p>Turn study into battle</p>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+            </div>
+            <form id="auth-form" class="auth-form">
+                <input id="auth-email" type="email" placeholder="Email" required>
+                <input id="auth-username" type="text" placeholder="Username" required>
+                <input id="auth-password" type="password" placeholder="Password" minlength="4" required>
+                <button type="submit" id="auth-btn">Login</button>
+            </form>
+            <div id="auth-status"></div>
+        </div>`;
+    setupAuthForm('login');
+}
+
+function switchAuthTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.textContent.toLowerCase().includes(tab)));
+    setupAuthForm(tab);
+}
+
+function setupAuthForm(mode) {
+    const form = document.getElementById('auth-form');
+    const btn = document.getElementById('auth-btn');
+    const userInput = document.getElementById('auth-username');
+    btn.textContent = mode === 'login' ? 'Login' : 'Register';
+    userInput.style.display = mode === 'login' ? 'none' : 'block';
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('auth-email').value.trim();
+        const username = document.getElementById('auth-username').value.trim();
+        const password = document.getElementById('auth-password').value;
+        const status = document.getElementById('auth-status');
+        btn.disabled = true; btn.textContent = '...'; status.textContent = '';
+        try {
+            const endpoint = mode === 'login' ? '/auth/login' : '/auth/register';
+            const body = mode === 'login' ? { email, password } : { email, username, password };
+            const result = await App.post(endpoint, body);
+            localStorage.setItem('authToken', result.token);
+            localStorage.setItem('playerId', String(result.player_id));
+            App.state.player = result.player;
             App.updateSidebar();
-        }).catch(() => localStorage.removeItem('playerId'));
-    }
-    App.navigate(page);
-    // If no player, show welcome/create modal
-    if (!pid) {
-        document.getElementById('page-dashboard').innerHTML = `
-            <div class="welcome-screen">
-                <h1>⚔️ 数学冒险</h1>
-                <p>把刷题变成打怪升级</p>
-                <form id="create-player-form">
-                    <input id="username-input" placeholder="输入你的冒险者名字" required>
-                    <button type="submit">开始冒险</button>
-                </form>
-            </div>`;
-        document.getElementById('create-player-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username-input').value;
-            try {
-                const p = await App.post('/players', { username });
+            App.navigate('dashboard');
+            if (typeof dashboard !== 'undefined' && dashboard.render) dashboard.render();
+        } catch (err) {
+            status.innerHTML = '<span style="color:var(--ruby)">' + (err.message || 'Failed') + '</span>';
+            btn.disabled = false; btn.textContent = mode === 'login' ? 'Login' : 'Register';
+        }
+    };
+}
+
+// Auto-start BGM on first user interaction (browser policy)
+let _bgmStarted = false;
+document.addEventListener('click', () => {
+    if (!_bgmStarted) { Audio.bgmStart(); _bgmStarted = true; }
+}, { once: true });
+
+window.addEventListener('DOMContentLoaded', () => {
+    I18N.applyAll();
+    const page = window.location.hash.slice(1) || 'dashboard';
+    const token = localStorage.getItem('authToken');
+
+    if (token) {
+        // Validate session and get player
+        App.get('/auth/me').then(user => {
+            App.state.player = user.player || { id: user.player_id, username: user.username };
+            App.get(`/players/${user.player_id}`).then(p => {
                 App.state.player = p;
                 App.updateSidebar();
-                localStorage.setItem('playerId', p.id);
-                App.navigate('dashboard');
-                if (typeof dashboard !== 'undefined') dashboard.render();
-            } catch (e) {
-                App.toast(e.message || '创建角色失败，请重试', 'error');
-            }
-        };
+                App.navigate(page);
+            }).catch(() => {
+                App.updateSidebar();
+                App.navigate(page);
+            });
+        }).catch(() => {
+            showWelcome();
+        });
+    } else {
+        showWelcome();
     }
 });
 

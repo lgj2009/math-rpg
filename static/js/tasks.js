@@ -3,15 +3,11 @@
 
 const tasks = {
     async render() {
+        const p = App.state.player;
+        if (!p) { document.getElementById('page-tasks').innerHTML = '<div class="empty-state"><p>⚠️ 请先创建角色</p></div>'; return; }
         const main = document.getElementById('page-tasks');
         if (!main) return;
         const today = new Date().toISOString().slice(0, 10);
-        const p = App.state.player;
-        if (!p) {
-            main.innerHTML = '<div class="loading">加载中...</div>';
-            return;
-        }
-
         // Fetch today's tasks; auto-generate if none exist
         let taskList;
         try {
