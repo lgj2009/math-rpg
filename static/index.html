@@ -25,15 +25,15 @@
     <div id="music-player">
         <button id="music-toggle" onclick="MusicPlayer.toggle()" title="音乐播放器">🎵</button>
         <div id="music-panel" style="display:none">
-            <div class="music-header">🎵 背景音乐 <button onclick="MusicPlayer.toggle()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px">✕</button></div>
+            <div class="music-header">🎵 SoundCloud 音乐 <button onclick="MusicPlayer.toggle()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px">✕</button></div>
             <div class="music-presets">
-                <div class="music-preset" onclick="MusicPlayer.play('52068246','Driftwood')">🌊 Driftwood</div>
-                <div class="music-preset" onclick="MusicPlayer.play('1957705180','春娇与志明')">🌸 春娇与志明</div>
-                <div class="music-preset" onclick="MusicPlayer.play('1456893808','Love Is Gone')">💔 Love Is Gone</div>
-                <div class="music-preset" onclick="MusicPlayer.play('2612276293','孤勇者')">⚔️ 孤勇者</div>
+                <div class="music-preset" onclick="MusicPlayer.play('2120352013','🎧 Lo-fi Study')">🎧 Lo-fi Study</div>
+                <div class="music-preset" onclick="MusicPlayer.play('2120352040','🌧️ Jazz Vibes')">🌧️ Jazz Vibes</div>
+                <div class="music-preset" onclick="MusicPlayer.play('2120352085','☕ Morning Coffee')">☕ Morning Coffee</div>
+                <div class="music-preset" onclick="MusicPlayer.play('2120352121','🌙 Night Focus')">🌙 Night Focus</div>
             </div>
             <div class="music-custom">
-                <input id="music-id-input" placeholder="粘贴网易云歌曲ID或链接..." style="width:100%;padding:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:var(--bg-field);color:var(--text-primary);font-size:12px;outline:none">
+                <input id="music-id-input" placeholder="粘贴 SoundCloud 歌曲ID或链接..." style="width:100%;padding:8px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;background:var(--bg-field);color:var(--text-primary);font-size:12px;outline:none">
                 <button onclick="MusicPlayer.playCustom()" style="margin-top:6px;padding:6px 12px;border:none;border-radius:4px;background:var(--gold);color:#1a1a1a;font-size:12px;font-weight:700;cursor:pointer;width:100%">播放</button>
             </div>
             <div id="music-embed-container" style="margin-top:8px"></div>

@@ -1,8 +1,6 @@
 "use strict";
 const MusicPlayer = {
     _open: false,
-    _currentId: null,
-    _currentTitle: '',
 
     toggle() {
         this._open = !this._open;
@@ -10,33 +8,30 @@ const MusicPlayer = {
         document.getElementById('music-toggle').textContent = this._open ? '✕' : '🎵';
     },
 
-    play(songId, title) {
-        this._currentId = songId;
-        this._currentTitle = title;
+    play(trackId, title) {
         document.getElementById('music-now').textContent = '🎶 ' + title;
-        // NetEase official embed — needs to be visible to play
+        // SoundCloud embed — designed for embedding, no cross-origin issues
+        const url = `https://api.soundcloud.com/tracks/${trackId}`;
+        const embedUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&auto_play=true&visual=false&buying=false&sharing=false&download=false&show_artwork=false`;
         const container = document.getElementById('music-embed-container');
-        container.innerHTML = `<iframe frameborder="no" border="0" marginwidth="0" marginheight="0"
-            width="100%" height="52"
-            src="https://music.163.com/outchain/player?type=2&id=${songId}&auto=1&height=32">
-        </iframe>`;
-        // Pause BGM
+        container.innerHTML = `<iframe width="100%" height="60" scrolling="no" frameborder="no"
+            src="${embedUrl}"></iframe>`;
         if (typeof SFX !== 'undefined' && SFX.bgmStop) SFX.bgmStop();
     },
 
     playCustom() {
         const input = document.getElementById('music-id-input').value.trim();
         if (!input) return;
+        // Accept SoundCloud track ID or full URL
         let id = input;
-        const match = input.match(/id=(\d+)/);
+        const match = input.match(/tracks\/(\d+)/);
         if (match) id = match[1];
-        if (!/^\d+$/.test(id)) { App.toast('请输入有效的歌曲ID或网易云链接', 'warning'); return; }
+        if (!/^\d+$/.test(id)) { App.toast('请输入有效的 SoundCloud 歌曲 ID 或链接', 'warning'); return; }
         this.play(id, '自定义歌曲');
     },
 
     stop() {
         document.getElementById('music-embed-container').innerHTML = '';
         document.getElementById('music-now').textContent = '';
-        this._currentId = null;
     },
 };
