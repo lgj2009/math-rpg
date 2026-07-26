@@ -19,7 +19,22 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
 </head>
 <body>
-    <button id="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+    <nav id="mobile-tabbar">
+        <div class="mtab active" data-page="dashboard">📊<span>冒险</span></div>
+        <div class="mtab" data-page="learn">📖<span>学艺</span></div>
+        <div class="mtab" data-page="practice">⚔️<span>狩猎</span></div>
+        <div class="mtab" data-page="mistakes">📝<span>错题</span></div>
+        <div class="mtab" data-page="more" onclick="document.getElementById('mobile-more').classList.toggle('open')">⋯<span>更多</span></div>
+    </nav>
+    <div id="mobile-more" class="mobile-more-panel">
+        <div class="mobile-more-item" data-page="progress" onclick="App.navigate('progress');document.getElementById('mobile-more').classList.remove('open')">📈 修炼进度</div>
+        <div class="mobile-more-item" data-page="bank" onclick="App.navigate('bank');document.getElementById('mobile-more').classList.remove('open')">📚 题库</div>
+        <div class="mobile-more-item" data-page="guild" onclick="App.navigate('guild');document.getElementById('mobile-more').classList.remove('open')">🏰 公会</div>
+        <div class="mobile-more-item" data-page="season" onclick="App.navigate('season');document.getElementById('mobile-more').classList.remove('open')">🏁 赛季</div>
+        <div class="mobile-more-item" data-page="achievements" onclick="App.navigate('achievements');document.getElementById('mobile-more').classList.remove('open')">🏆 成就</div>
+        <div class="mobile-more-item" data-page="settings" onclick="App.navigate('settings');document.getElementById('mobile-more').classList.remove('open')">⚙️ 设置</div>
+        <div class="mobile-more-item" onclick="App.api('POST','/auth/logout');localStorage.clear();location.reload()">🚪 登出</div>
+    </div>
     <nav id="sidebar">
         <div class="player-card">
             <div class="player-avatar" id="avatar">📚</div>
