@@ -221,9 +221,12 @@ def _finalize_combat(session: dict, sid: str) -> dict:
         title = "完美讨伐"
         title_emoji = "🏆"
     elif accuracy >= 0.8:
-        title = "讨伐成功"
+        title = "大获全胜"
         title_emoji = "🎉"
     elif accuracy >= 0.6:
+        title = "讨伐成功"
+        title_emoji = "⚔️"
+    elif accuracy >= 0.4:
         title = "勉强过关"
         title_emoji = "👍"
     else:

@@ -4,6 +4,7 @@ const practice = {
     _session: null,
     _questionStart: 0,
     _renderId: 0,
+    _usedHint: false,
 
     // ─── Module Selector ────────────────────────────────────────────
     async render() {
@@ -79,6 +80,7 @@ const practice = {
                 </div>
                 <div class="combat-actions">
                     <span class="crit-timer" id="crit-timer">⚡暴击: 15s</span>
+                    <button class="btn-secondary" id="btn-hint" onclick="practice._showHint()" style="font-size:12px;padding:8px 12px">💡 提示</button>
                     <button class="btn-primary" onclick="practice._submitAnswer()">⚔️ 攻击</button>
                 </div>
                 <div id="feedback-area"></div>
@@ -155,46 +157,72 @@ const practice = {
         const fb = document.getElementById('feedback-area');
         const comboEl = document.getElementById('combo-display');
 
+        if (result.combo >= 3) {
+            comboEl.innerHTML = `<span class="combo-badge combo-${result.combo>=8?'max':result.combo>=5?'high':'mid'}">🔥 ${result.combo} 连击!</span>`;
+        } else { comboEl.innerHTML = ''; }
+
         if (result.is_correct) {
             fb.innerHTML = `<div class="fb-correct">
                 <span class="fb-icon">✅</span>
                 ${result.crit ? '<span class="fb-crit">⚡暴击!</span>' : ''}
+                ${!result.crit && this._usedHint ? '<span class="fb-nohint">💡用了提示,无暴击</span>' : ''}
                 <span class="fb-xp">+${result.xp_gained} XP</span>
                 ${result.combo >= 3 ? `<span class="fb-combo">🔥${result.combo}连击!</span>` : ''}
             </div>`;
             SFX.beep && SFX.beep(600, 0.08);
             if (result.crit) SFX.beep && SFX.beep(900, 0.12);
+            App.renderMath(fb);
+            App.refreshPlayer();
+            this._usedHint = false;
+            this._submitting = false;
+
+            if (result.finished) {
+                setTimeout(() => this._showFinal(result), 1200);
+            } else {
+                setTimeout(() => {
+                    fb.innerHTML = '';
+                    this._renderBoss(result.next_question, result.question_number + 1);
+                }, 800);
+            }
         } else {
+            // Wrong — user controls when to proceed
+            this._lastResult = result;
+            this._nextQ = result.next_question;
+            this._nextQNum = result.question_number;
             fb.innerHTML = `<div class="fb-wrong">
                 <span class="fb-icon">❌</span>
                 <span>正确答案: <b>${result.correct_answer}</b></span>
                 ${result.solution ? `<div class="fb-solution">💡 ${result.solution}</div>` : ''}
+                <button class="btn-primary" onclick="practice._nextAfterWrong(${result.finished})" style="display:block;margin-top:10px">${result.finished ? '查看结果 ▶' : '下一题 ▶'}</button>
             </div>`;
             SFX.beep && SFX.beep(200, 0.2);
-        }
-        App.renderMath(fb);
-
-        // Update combo display
-        if (result.combo >= 3) {
-            comboEl.innerHTML = `<span class="combo-badge combo-${result.combo>=8?'max':result.combo>=5?'high':'mid'}">🔥 ${result.combo} 连击!</span>`;
-        } else {
-            comboEl.innerHTML = '';
-        }
-
-        App.refreshPlayer();
-
-        if (result.finished) {
-            // Combat over — show final screen
-            setTimeout(() => this._showFinal(result), 1500);
-        } else {
-            // Next question after short delay
+            App.renderMath(fb);
+            App.refreshPlayer();
+            this._usedHint = false;
             this._submitting = false;
-            setTimeout(() => {
-                fb.innerHTML = '';
-                this._renderBoss(result.next_question, result.question_number + 1);
-                this._submitting = false;
-            }, result.is_correct ? 800 : 1800);
         }
+    },
+
+    _nextAfterWrong(finished) {
+        if (finished && this._lastResult) {
+            this._showFinal(this._lastResult);
+        } else {
+            const fb = document.getElementById('feedback-area');
+            if (fb) fb.innerHTML = '';
+            if (this._nextQ) this._renderBoss(this._nextQ, this._nextQNum + 1);
+        }
+    },
+
+    _showHint() {
+        this._usedHint = true;
+        const q = this._session.questions[this._session.current_idx || 0];
+        if (!q) return;
+        const sol = q.solution || '';
+        const hint = sol.split('。')[0] || sol.substring(0, 80);
+        document.getElementById('feedback-area').innerHTML = `<div class="fb-hint">💡 提示: ${hint}<br><span style="font-size:11px;color:var(--ruby)">(用了提示,不能暴击)</span></div>`;
+        App.renderMath(document.getElementById('feedback-area'));
+        const btn = document.getElementById('btn-hint');
+        if (btn) { btn.disabled = true; btn.textContent = '已用提示'; }
     },
 
     // ─── Final Screen ──────────────────────────────────────────────

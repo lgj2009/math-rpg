@@ -19,12 +19,17 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10, la
         (player_id, module_id),
     ).fetchone()
 
+    # Smooth difficulty: gradual mix instead of hard jump
     target_difficulty = 1
+    difficulty_mix = 0  # 0=all d1, 1=all d2, 2=all d3
     if mastery:
-        if mastery["accuracy_avg"] >= 0.80:
-            target_difficulty = 2
-        if mastery["accuracy_avg"] >= 0.90 and mastery["status"] in ("practicing", "mastered"):
-            target_difficulty = 3
+        acc = mastery["accuracy_avg"]
+        if acc >= 0.90 and mastery["status"] in ("practicing", "mastered"):
+            target_difficulty = 3; difficulty_mix = 2
+        elif acc >= 0.80:
+            target_difficulty = 2; difficulty_mix = 1
+        elif acc >= 0.65:
+            target_difficulty = 2; difficulty_mix = 0.5  # mix d1 and d2
 
     # --- Collect IDs of questions the player has already answered ---
     answered_rows = db.execute(
@@ -43,7 +48,7 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10, la
             pass
 
     # --- Fetch ALL available questions matching difficulty ---
-    # NO ORDER BY RANDOM() — we shuffle in Python for true randomness
+    # Use difficulty mix for smooth progression
     all_rows = db.execute(
         """
         SELECT id, module_id, type, difficulty, content, content_en, content_vi,
@@ -54,6 +59,28 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10, la
         """,
         (module_id, target_difficulty),
     ).fetchall()
+
+    # Split by difficulty for smooth mixing
+    d1_rows = [r for r in all_rows if r["difficulty"] <= 1]
+    d2_rows = [r for r in all_rows if r["difficulty"] == 2]
+    d3_rows = [r for r in all_rows if r["difficulty"] == 3]
+    random.shuffle(d1_rows); random.shuffle(d2_rows); random.shuffle(d3_rows)
+
+    # Mix based on difficulty_mix ratio
+    if difficulty_mix == 0:
+        all_rows = d1_rows
+    elif difficulty_mix == 0.5:
+        # 50% d1, 50% d2
+        take_d2 = min(len(d2_rows), count // 2)
+        all_rows = d1_rows + d2_rows[:take_d2]
+    elif difficulty_mix == 1:
+        # 20% d1, 80% d2
+        take_d1 = min(len(d1_rows), max(2, count // 5))
+        all_rows = d1_rows[:take_d1] + d2_rows
+    elif difficulty_mix == 2:
+        # 30% d2, 70% d3
+        take_d2 = min(len(d2_rows), max(3, count * 3 // 10))
+        all_rows = d2_rows[:take_d2] + d3_rows
 
     # Split into unanswered and answered pools
     unanswered = []
