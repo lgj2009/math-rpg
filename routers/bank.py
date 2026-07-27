@@ -1,6 +1,6 @@
 """GET /api/bank — full question bank with answers and solutions."""
 from fastapi import APIRouter, Query
-from database import get_db
+from database import get_db_ctx
 import json
 
 router = APIRouter(prefix="/api", tags=["bank"])
@@ -19,8 +19,6 @@ def browse_bank(
     """Browse all questions with full answers and solutions.
     Supports filtering by module, difficulty, source, and keyword search.
     """
-    db = get_db()
-
     where = ["1=1"]
     params = []
 
@@ -40,25 +38,26 @@ def browse_bank(
 
     where_clause = " AND ".join(where)
 
-    # Count total
-    count_row = db.execute(
-        f"SELECT COUNT(*) FROM questions q WHERE {where_clause}", params
-    ).fetchone()
-    total = count_row[0]
+    with get_db_ctx() as db:
+        # Count total
+        count_row = db.execute(
+            f"SELECT COUNT(*) FROM questions q WHERE {where_clause}", params
+        ).fetchone()
+        total = count_row[0]
 
-    # Fetch page
-    offset = (page - 1) * page_size
-    rows = db.execute(
-        f"""SELECT q.id, q.module_id, q.type, q.difficulty, q.content, q.options,
-                   q.answer, q.solution, q.source_type, q.source_ref, q.concepts,
-                   m.name as module_name, m.icon as module_icon
-            FROM questions q
-            LEFT JOIN modules m ON q.module_id = m.id
-            WHERE {where_clause}
-            ORDER BY q.source_type DESC, q.source_ref, q.id
-            LIMIT ? OFFSET ?""",
-        params + [page_size, offset],
-    ).fetchall()
+        # Fetch page
+        offset = (page - 1) * page_size
+        rows = db.execute(
+            f"""SELECT q.id, q.module_id, q.type, q.difficulty, q.content, q.options,
+                       q.answer, q.solution, q.source_type, q.source_ref, q.concepts,
+                       m.name as module_name, m.icon as module_icon
+                FROM questions q
+                LEFT JOIN modules m ON q.module_id = m.id
+                WHERE {where_clause}
+                ORDER BY q.source_type DESC, q.source_ref, q.id
+                LIMIT ? OFFSET ?""",
+            params + [page_size, offset],
+        ).fetchall()
 
     questions = []
     for r in rows:
@@ -87,8 +86,8 @@ def browse_bank(
 @router.get("/bank/modules")
 def bank_modules():
     """List all modules for the filter dropdown."""
-    db = get_db()
-    rows = db.execute(
-        "SELECT id, name, icon, weight FROM modules ORDER BY sort_order"
-    ).fetchall()
+    with get_db_ctx() as db:
+        rows = db.execute(
+            "SELECT id, name, icon, weight FROM modules ORDER BY sort_order"
+        ).fetchall()
     return [dict(r) for r in rows]

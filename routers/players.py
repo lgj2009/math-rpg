@@ -29,21 +29,21 @@ def checkin(player_id: int):
 
 @router.post("/{player_id}/reset")
 def reset_progress(player_id: int):
-    from database import get_db
-    db = get_db()
-    db.execute("DELETE FROM practice_records WHERE player_id=?", (player_id,))
-    db.execute("DELETE FROM mistakes WHERE player_id=?", (player_id,))
-    db.execute("DELETE FROM blind_spots WHERE player_id=?", (player_id,))
-    db.execute("DELETE FROM blind_spot_rounds WHERE blind_spot_id IN (SELECT id FROM blind_spots WHERE player_id=?)", (player_id,))
-    db.execute("DELETE FROM module_mastery WHERE player_id=?", (player_id,))
-    db.execute("DELETE FROM checkins WHERE player_id=?", (player_id,))
-    db.execute("UPDATE players SET xp=0, level=1, title='数学学徒', streak_days=0, max_streak=0, focus_energy=100, season_xp=0, battle_pass_tier=0, coins=0 WHERE id=?", (player_id,))
-    db.execute("DELETE FROM guild_members WHERE player_id=?", (player_id,))
-    # Re-create module_mastery rows
-    modules = db.execute("SELECT id FROM modules").fetchall()
-    for m in modules:
-        db.execute("INSERT OR IGNORE INTO module_mastery (player_id, module_id) VALUES (?,?)", (player_id, m["id"]))
-    db.commit()
+    from database import get_db_ctx
+    with get_db_ctx() as db:
+        db.execute("DELETE FROM practice_records WHERE player_id=?", (player_id,))
+        db.execute("DELETE FROM mistakes WHERE player_id=?", (player_id,))
+        db.execute("DELETE FROM blind_spots WHERE player_id=?", (player_id,))
+        db.execute("DELETE FROM blind_spot_rounds WHERE blind_spot_id IN (SELECT id FROM blind_spots WHERE player_id=?)", (player_id,))
+        db.execute("DELETE FROM module_mastery WHERE player_id=?", (player_id,))
+        db.execute("DELETE FROM checkins WHERE player_id=?", (player_id,))
+        db.execute("UPDATE players SET xp=0, level=1, title='数学学徒', streak_days=0, max_streak=0, focus_energy=100, season_xp=0, battle_pass_tier=0, coins=0 WHERE id=?", (player_id,))
+        db.execute("DELETE FROM guild_members WHERE player_id=?", (player_id,))
+        # Re-create module_mastery rows
+        modules = db.execute("SELECT id FROM modules").fetchall()
+        for m in modules:
+            db.execute("INSERT OR IGNORE INTO module_mastery (player_id, module_id) VALUES (?,?)", (player_id, m["id"]))
+        db.commit()
     return {"ok": True}
 
 

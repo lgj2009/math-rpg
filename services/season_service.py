@@ -1,7 +1,7 @@
 """Season pass — tiered rewards with free/premium tracks."""
 import json
 from datetime import date, datetime
-from database import get_db
+from database import get_db_ctx
 
 SEASON_REWARDS = [
     # tier: free_reward, premium_reward
@@ -20,33 +20,33 @@ SEASON_REWARDS = [
 
 def get_current_season(player_id: int = 0) -> dict:
     """Return current season with player progress."""
-    db = get_db()
-    now = date.today().isoformat()
-    season = db.execute(
-        "SELECT * FROM seasons WHERE start_date <= ? AND end_date >= ? AND active=1 ORDER BY id DESC LIMIT 1",
-        (now, now),
-    ).fetchone()
+    with get_db_ctx() as db:
+        now = date.today().isoformat()
+        season = db.execute(
+            "SELECT * FROM seasons WHERE start_date <= ? AND end_date >= ? AND active=1 ORDER BY id DESC LIMIT 1",
+            (now, now),
+        ).fetchone()
 
-    if not season:
-        # Create a default season
-        from datetime import timedelta
-        start = date.today().isoformat()
-        end = (date.today() + timedelta(days=60)).isoformat()
-        db.execute("INSERT INTO seasons (name, start_date, end_date, reward_tiers, active) VALUES (?,?,?,?,?)",
-                   ("第1赛季: 函数觉醒", start, end, json.dumps(SEASON_REWARDS), 1))
-        db.commit()
-        season = db.execute("SELECT * FROM seasons WHERE id=?", (db.execute("SELECT last_insert_rowid()").fetchone()[0],)).fetchone()
+        if not season:
+            # Create a default season
+            from datetime import timedelta
+            start = date.today().isoformat()
+            end = (date.today() + timedelta(days=60)).isoformat()
+            cur = db.execute("INSERT INTO seasons (name, start_date, end_date, reward_tiers, active) VALUES (?,?,?,?,?)",
+                             ("第1赛季: 函数觉醒", start, end, json.dumps(SEASON_REWARDS), 1))
+            db.commit()
+            season = db.execute("SELECT * FROM seasons WHERE id=?", (cur.lastrowid,)).fetchone()
 
-    season = dict(season)
-    season["reward_tiers"] = json.loads(season["reward_tiers"]) if isinstance(season["reward_tiers"], str) else SEASON_REWARDS
+        season = dict(season)
+        season["reward_tiers"] = json.loads(season["reward_tiers"]) if isinstance(season["reward_tiers"], str) else SEASON_REWARDS
 
-    # Player progress
-    player_xp = 0
-    if player_id > 0:
-        p = db.execute("SELECT season_xp, battle_pass_tier FROM players WHERE id=?", (player_id,)).fetchone()
-        if p:
-            player_xp = p["season_xp"] or 0
-            season["battle_pass_tier"] = p["battle_pass_tier"] or 0
+        # Player progress
+        player_xp = 0
+        if player_id > 0:
+            p = db.execute("SELECT season_xp, battle_pass_tier FROM players WHERE id=?", (player_id,)).fetchone()
+            if p:
+                player_xp = p["season_xp"] or 0
+                season["battle_pass_tier"] = p["battle_pass_tier"] or 0
 
     # Find current tier
     current_tier = 0
@@ -60,8 +60,6 @@ def get_current_season(player_id: int = 0) -> dict:
         days_left = max(0, (end_date.date() - date.today()).days)
     except:
         days_left = 30
-
-    db.close()
 
     tiers_with_status = []
     for t in season["reward_tiers"]:
@@ -87,20 +85,20 @@ def get_current_season(player_id: int = 0) -> dict:
 
 def add_season_xp(player_id: int, amount: int):
     """Add XP to player's season progress."""
-    db = get_db()
-    db.execute("UPDATE players SET season_xp = season_xp + ? WHERE id=?", (amount, player_id))
-    db.commit()
-    db.close()
+    with get_db_ctx() as db:
+        db.execute("UPDATE players SET season_xp = season_xp + ? WHERE id=?", (amount, player_id))
+        db.commit()
 
 
 def claim_tier(player_id: int, tier: int) -> dict:
     """Claim a season tier reward. Returns the reward or error."""
-    db = get_db()
-    p = db.execute("SELECT season_xp, battle_pass_tier FROM players WHERE id=?", (player_id,)).fetchone()
-    if not p: db.close(); return {"detail": "Player not found"}
+    with get_db_ctx() as db:
+        p = db.execute("SELECT season_xp, battle_pass_tier FROM players WHERE id=?", (player_id,)).fetchone()
+        if not p:
+            return {"detail": "Player not found"}
 
-    if p["battle_pass_tier"] and p["battle_pass_tier"] >= tier:
-        db.close(); return {"detail": "Already claimed"}
+        if p["battle_pass_tier"] and p["battle_pass_tier"] >= tier:
+            return {"detail": "Already claimed"}
 
     season = get_current_season(player_id)
     target = None
@@ -108,9 +106,10 @@ def claim_tier(player_id: int, tier: int) -> dict:
         if t["tier"] == tier:
             target = t; break
     if not target or not target["unlocked"]:
-        db.close(); return {"detail": "Tier not unlocked yet"}
+        return {"detail": "Tier not unlocked yet"}
 
-    db.execute("UPDATE players SET battle_pass_tier = ? WHERE id=?", (tier, player_id))
-    db.commit(); db.close()
+    with get_db_ctx() as db:
+        db.execute("UPDATE players SET battle_pass_tier = ? WHERE id=?", (tier, player_id))
+        db.commit()
 
     return {"ok": True, "reward": target["free"], "premium_reward": target["premium"]}

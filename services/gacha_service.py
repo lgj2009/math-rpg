@@ -1,6 +1,6 @@
 import random
 import json
-from database import get_db
+from database import get_db_ctx
 import config
 
 COSMETIC_POOL = {
@@ -37,12 +37,26 @@ COSMETIC_POOL = {
 }
 
 
+def _validate_odds(odds: dict) -> dict:
+    """Ensure probability odds sum to 1.0. Normalize if they don't."""
+    total = sum(odds.values())
+    if abs(total - 1.0) < 0.001:
+        return odds
+    # Normalize to 1.0
+    import sys
+    print(f"[gacha] Warning: odds sum to {total:.4f}, normalizing to 1.0", file=sys.stderr)
+    return {k: v / total for k, v in odds.items()}
+
+
 def roll_gacha(player_id: int, streak_bonus: bool = False) -> dict:
     odds = dict(config.GACHA_ODDS)
     if streak_bonus:
-        # Shift legendary probability
+        # Shift legendary probability, reduce common
         odds["legendary"] = odds.get("legendary", 0.015) + config.GACHA_STREAK_BONUS
-        odds["common"] = odds.get("common", 0.70) - config.GACHA_STREAK_BONUS
+        odds["common"] = max(0, odds.get("common", 0.70) - config.GACHA_STREAK_BONUS)
+
+    # Validate and normalize if needed
+    odds = _validate_odds(odds)
 
     roll = random.random()
     cumulative = 0
@@ -56,17 +70,16 @@ def roll_gacha(player_id: int, streak_bonus: bool = False) -> dict:
     item = random.choice(COSMETIC_POOL[result_rarity])
 
     # Grant to player
-    db = get_db()
-    row = db.execute("SELECT owned_cosmetics FROM players WHERE id=?", (player_id,)).fetchone()
-    owned = json.loads(row["owned_cosmetics"]) if row else []
-    owned.append(item["name"])
-    db.execute("UPDATE players SET owned_cosmetics=? WHERE id=?", (json.dumps(owned), player_id))
+    with get_db_ctx() as db:
+        row = db.execute("SELECT owned_cosmetics FROM players WHERE id=?", (player_id,)).fetchone()
+        owned = json.loads(row["owned_cosmetics"]) if row else []
+        owned.append(item["name"])
+        db.execute("UPDATE players SET owned_cosmetics=? WHERE id=?", (json.dumps(owned), player_id))
 
-    # Log drop for broadcast
-    db.execute("INSERT INTO cosmetic_drops_log (player_id, item_rarity, item_name) VALUES (?,?,?)",
-               (player_id, result_rarity, item["name"]))
-    db.commit()
-    db.close()
+        # Log drop for broadcast
+        db.execute("INSERT INTO cosmetic_drops_log (player_id, item_rarity, item_name) VALUES (?,?,?)",
+                   (player_id, result_rarity, item["name"]))
+        db.commit()
 
     return {
         "rarity": result_rarity,

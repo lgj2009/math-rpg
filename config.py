@@ -65,9 +65,11 @@ NEAR_MISS_MAX = 0.94
 
 # Feedback email (QQ SMTP)
 # 在QQ邮箱→设置→账户→POP3/SMTP服务 中开启并获取授权码
+# Set SMTP_PASSWORD to enable email features (feedback notifications, password reset, etc.)
+# When SMTP_PASSWORD is "YOUR_QQ_AUTH_CODE", all email features are silently disabled.
 SMTP_ENABLED = True
 SMTP_HOST = "smtp.qq.com"
 SMTP_PORT = 465
 SMTP_USER = "1483361098@qq.com"
-SMTP_PASSWORD = "YOUR_QQ_AUTH_CODE"  # 替换为QQ邮箱授权码
+SMTP_PASSWORD = "YOUR_QQ_AUTH_CODE"  # ← Set your QQ auth code here to enable email
 SMTP_TO = "1483361098@qq.com"

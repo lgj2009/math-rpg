@@ -1,6 +1,7 @@
 """Achievement tracking — check conditions and unlock badges."""
 import json
-from database import get_db
+import re
+from database import get_db_ctx
 
 ACHIEVEMENTS = [
     # Combat
@@ -66,27 +67,61 @@ ACHIEVEMENTS = [
 ]
 
 
+def _evaluate_condition(condition: str, stats: dict) -> bool:
+    """Safely evaluate a simple achievement condition without using eval().
+
+    Supported formats:
+      - "identifier"              → truthy check (bool or non-zero)
+      - "identifier OP number"    → numeric comparison (>=, <=, >, <, ==)
+    """
+    condition = condition.strip()
+    # Pattern: identifier OP number
+    m = re.match(r'^(\w+)\s*(>=|<=|>|<|==)\s*(\d+(?:\.\d+)?)$', condition)
+    if m:
+        key, op, val_str = m.group(1), m.group(2), m.group(3)
+        actual = stats.get(key, 0)
+        expected = float(val_str) if '.' in val_str else int(val_str)
+        try:
+            actual_num = float(actual) if isinstance(actual, bool) else actual
+        except (TypeError, ValueError):
+            return False
+        if op == '>=': return actual_num >= expected
+        if op == '<=': return actual_num <= expected
+        if op == '>':  return actual_num > expected
+        if op == '<':  return actual_num < expected
+        if op == '==': return actual_num == expected
+        return False
+
+    # Pattern: bare identifier → truthy check
+    if re.match(r'^[A-Za-z_]\w*$', condition):
+        return bool(stats.get(condition, False))
+
+    # Unknown format — log and reject
+    import sys
+    print(f"[achievement] Unknown condition format: {condition!r}", file=sys.stderr)
+    return False
+
+
 def get_player_achievements(player_id: int, lang: str = "zh") -> list:
     """Return all achievements with unlock status for a player."""
-    db = get_db()
+    with get_db_ctx() as db:
+        # Get player stats
+        p = db.execute("SELECT * FROM players WHERE id=?", (player_id,)).fetchone()
+        if not p:
+            return []
 
-    # Get player stats
-    p = db.execute("SELECT * FROM players WHERE id=?", (player_id,)).fetchone()
-    if not p:
-        db.close(); return []
-
-    # Compute stats
-    practice_count = db.execute("SELECT COUNT(*) FROM practice_records WHERE player_id=?", (player_id,)).fetchone()[0]
-    has_perfect = db.execute("SELECT COUNT(*) FROM practice_records WHERE player_id=? AND correct_count=total_questions AND total_questions>0", (player_id,)).fetchone()[0] > 0
-    max_combo_row = db.execute("SELECT MAX(correct_count) as mc FROM practice_records WHERE player_id=?", (player_id,)).fetchone()
-    max_combo = max_combo_row["mc"] or 0
-    boss_kills_row = db.execute("SELECT COUNT(*) FROM blind_spots WHERE player_id=? AND status='cleared'", (player_id,)).fetchone()
-    boss_kills = boss_kills_row[0]
-    total_qs = db.execute("SELECT COALESCE(SUM(total_questions),0) FROM practice_records WHERE player_id=?", (player_id,)).fetchone()[0]
-    modules_mastered = db.execute("SELECT COUNT(*) FROM module_mastery WHERE player_id=? AND status='mastered'", (player_id,)).fetchone()[0]
-    lessons_read = 0  # simplified
-    guild_messages = db.execute("SELECT COUNT(*) FROM guild_messages WHERE player_id=?", (player_id,)).fetchone()[0]
-    in_guild = p["guild_id"] is not None
+        # Compute stats
+        practice_count = db.execute("SELECT COUNT(*) FROM practice_records WHERE player_id=?", (player_id,)).fetchone()[0]
+        has_perfect = db.execute("SELECT COUNT(*) FROM practice_records WHERE player_id=? AND correct_count=total_questions AND total_questions>0", (player_id,)).fetchone()[0] > 0
+        max_combo_row = db.execute("SELECT MAX(correct_count) as mc FROM practice_records WHERE player_id=?", (player_id,)).fetchone()
+        max_combo = max_combo_row["mc"] or 0
+        boss_kills_row = db.execute("SELECT COUNT(*) FROM blind_spots WHERE player_id=? AND status='cleared'", (player_id,)).fetchone()
+        boss_kills = boss_kills_row[0]
+        total_qs = db.execute("SELECT COALESCE(SUM(total_questions),0) FROM practice_records WHERE player_id=?", (player_id,)).fetchone()[0]
+        modules_mastered = db.execute("SELECT COUNT(*) FROM module_mastery WHERE player_id=? AND status='mastered'", (player_id,)).fetchone()[0]
+        lessons_read = 0  # simplified
+        guild_messages = db.execute("SELECT COUNT(*) FROM guild_messages WHERE player_id=?", (player_id,)).fetchone()[0]
+        in_guild = p["guild_id"] is not None
 
     # Night owl / early bird
     from datetime import datetime
@@ -106,9 +141,10 @@ def get_player_achievements(player_id: int, lang: str = "zh") -> list:
     }
 
     # Check each achievement
-    unlocked = set()
-    for row in db.execute("SELECT badge_key FROM achievements WHERE player_id=?", (player_id,)).fetchall():
-        unlocked.add(row["badge_key"])
+    with get_db_ctx() as db:
+        unlocked = set()
+        for row in db.execute("SELECT badge_key FROM achievements WHERE player_id=?", (player_id,)).fetchall():
+            unlocked.add(row["badge_key"])
 
     results = []
     for ach in ACHIEVEMENTS:
@@ -122,26 +158,27 @@ def get_player_achievements(player_id: int, lang: str = "zh") -> list:
             "rarity": ach["rarity"],
             "unlocked": is_unlocked,
         })
-    db.close()
     return results
 
 
 def check_and_unlock(player_id: int) -> list:
     """Check all achievement conditions and unlock any newly earned. Returns newly unlocked keys."""
-    db = get_db()
-    p = db.execute("SELECT * FROM players WHERE id=?", (player_id,)).fetchone()
-    if not p: db.close(); return []
+    with get_db_ctx() as db:
+        p = db.execute("SELECT * FROM players WHERE id=?", (player_id,)).fetchone()
+        if not p:
+            return []
 
-    # Same stats as above
-    practice_count = db.execute("SELECT COUNT(*) FROM practice_records WHERE player_id=?", (player_id,)).fetchone()[0]
-    has_perfect = db.execute("SELECT COUNT(*) FROM practice_records WHERE player_id=? AND correct_count=total_questions AND total_questions>0", (player_id,)).fetchone()[0] > 0
-    max_combo_row = db.execute("SELECT MAX(correct_count) as mc FROM practice_records WHERE player_id=?", (player_id,)).fetchone()
-    max_combo = max_combo_row["mc"] or 0
-    boss_kills = db.execute("SELECT COUNT(*) FROM blind_spots WHERE player_id=? AND status='cleared'", (player_id,)).fetchone()[0]
-    total_qs = db.execute("SELECT COALESCE(SUM(total_questions),0) FROM practice_records WHERE player_id=?", (player_id,)).fetchone()[0]
-    modules_mastered = db.execute("SELECT COUNT(*) FROM module_mastery WHERE player_id=? AND status='mastered'", (player_id,)).fetchone()[0]
-    guild_messages = db.execute("SELECT COUNT(*) FROM guild_messages WHERE player_id=?", (player_id,)).fetchone()[0]
-    in_guild = p["guild_id"] is not None
+        # Same stats as above
+        practice_count = db.execute("SELECT COUNT(*) FROM practice_records WHERE player_id=?", (player_id,)).fetchone()[0]
+        has_perfect = db.execute("SELECT COUNT(*) FROM practice_records WHERE player_id=? AND correct_count=total_questions AND total_questions>0", (player_id,)).fetchone()[0] > 0
+        max_combo_row = db.execute("SELECT MAX(correct_count) as mc FROM practice_records WHERE player_id=?", (player_id,)).fetchone()
+        max_combo = max_combo_row["mc"] or 0
+        boss_kills = db.execute("SELECT COUNT(*) FROM blind_spots WHERE player_id=? AND status='cleared'", (player_id,)).fetchone()[0]
+        total_qs = db.execute("SELECT COALESCE(SUM(total_questions),0) FROM practice_records WHERE player_id=?", (player_id,)).fetchone()[0]
+        modules_mastered = db.execute("SELECT COUNT(*) FROM module_mastery WHERE player_id=? AND status='mastered'", (player_id,)).fetchone()[0]
+        guild_messages = db.execute("SELECT COUNT(*) FROM guild_messages WHERE player_id=?", (player_id,)).fetchone()[0]
+        in_guild = p["guild_id"] is not None
+
     from datetime import datetime; now = datetime.now()
 
     stats = {
@@ -152,17 +189,17 @@ def check_and_unlock(player_id: int) -> list:
         "early_checkin": now.hour < 6,
     }
 
-    already = set(r[0] for r in db.execute("SELECT badge_key FROM achievements WHERE player_id=?", (player_id,)).fetchall())
-    newly = []
+    with get_db_ctx() as db:
+        already = set(r[0] for r in db.execute("SELECT badge_key FROM achievements WHERE player_id=?", (player_id,)).fetchall())
+        newly = []
 
-    for ach in ACHIEVEMENTS:
-        if ach["key"] in already: continue
-        try:
-            if eval(ach["condition"], {"__builtins__": {}}, stats):
+        for ach in ACHIEVEMENTS:
+            if ach["key"] in already:
+                continue
+            if _evaluate_condition(ach["condition"], stats):
                 db.execute("INSERT INTO achievements (player_id, badge_key, unlocked_date) VALUES (?,?,datetime('now'))",
                            (player_id, ach["key"]))
                 newly.append(ach["key"])
-        except: pass
 
-    db.commit(); db.close()
+        db.commit()
     return newly

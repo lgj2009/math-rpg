@@ -1,15 +1,30 @@
 import sqlite3
 import os
+from contextlib import contextmanager
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "math_rpg.db")
 
 
 def get_db() -> sqlite3.Connection:
+    """Get a raw database connection. Caller is responsible for closing it.
+
+    Prefer using `with get_db_ctx() as db:` for automatic cleanup.
+    """
     conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
+
+
+@contextmanager
+def get_db_ctx():
+    """Context-managed database connection — auto-closes on exit."""
+    conn = get_db()
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 def init_db():
@@ -234,7 +249,7 @@ def init_db():
 
     # Migration: add columns that may not exist in older databases
     for col_sql in [
-        "ALTER TABLE practice_records ADD COLUMN session_id TEXT",
+        "ALTER TABLE practice_records ADD COLUMN session_id TEXT DEFAULT ''",
         "ALTER TABLE practice_records ADD COLUMN answered_question_ids TEXT DEFAULT '[]'",
     ]:
         try:
@@ -325,6 +340,17 @@ def init_db():
         user_id INTEGER NOT NULL,
         player_id INTEGER,
         expires_at TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )""")
+
+    # Password reset tokens
+    cur.execute("""CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        token TEXT NOT NULL UNIQUE,
+        expires_at TEXT NOT NULL,
+        used INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (user_id) REFERENCES users(id)
     )""")
 

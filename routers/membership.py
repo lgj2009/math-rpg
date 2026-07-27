@@ -1,5 +1,5 @@
 """Membership API — plans, checkout, webhook."""
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Header, Request
 from pydantic import BaseModel, Field
 from services import membership_service
 
@@ -7,7 +7,6 @@ router = APIRouter(prefix="/api/membership", tags=["membership"])
 
 
 class CheckoutBody(BaseModel):
-    player_id: int
     plan: str = Field(..., pattern="^(warrior|legend|lifetime)$")
     billing: str = Field(..., pattern="^(monthly|yearly|lifetime)$")
 
@@ -27,10 +26,20 @@ def get_plans():
 
 
 @router.post("/checkout")
-def checkout(body: CheckoutBody):
+def checkout(body: CheckoutBody, authorization: str = Header(None)):
+    """Create a Stripe checkout session. Requires authentication."""
+    from services.auth_service import validate_session
+    token = authorization[7:] if authorization and authorization.startswith("Bearer ") else None
+    if not token:
+        raise HTTPException(401, "Not authenticated")
+    user = validate_session(token)
+    if not user:
+        raise HTTPException(401, "Invalid session")
+    player_id = user["player_id"]
+
     success_url = f"http://127.0.0.1:8000/#settings?checkout=success"
     cancel_url = f"http://127.0.0.1:8000/#settings?checkout=cancel"
-    result = membership_service.create_checkout_session(body.player_id, body.plan, body.billing, success_url, cancel_url)
+    result = membership_service.create_checkout_session(player_id, body.plan, body.billing, success_url, cancel_url)
     if "detail" in result:
         raise HTTPException(400, result["detail"])
     return result

@@ -1,7 +1,7 @@
 """Membership system — plan management, Stripe integration, feature gating."""
 import json, os
 from datetime import datetime, timedelta
-from database import get_db
+from database import get_db_ctx
 
 try:
     import stripe
@@ -73,12 +73,11 @@ PLANS = {
 
 def get_user_membership(player_id: int) -> dict:
     """Get the current membership status for a player."""
-    db = get_db()
-    row = db.execute(
-        "SELECT * FROM user_memberships WHERE player_id=? AND (expires_at IS NULL OR expires_at > datetime('now')) ORDER BY created_at DESC LIMIT 1",
-        (player_id,),
-    ).fetchone()
-    db.close()
+    with get_db_ctx() as db:
+        row = db.execute(
+            "SELECT * FROM user_memberships WHERE player_id=? AND (expires_at IS NULL OR expires_at > datetime('now')) ORDER BY created_at DESC LIMIT 1",
+            (player_id,),
+        ).fetchone()
 
     if not row:
         return {"plan": "free", "expires_at": None, "is_premium": False,
@@ -145,7 +144,6 @@ def handle_stripe_webhook(payload: bytes, sig_header: str, webhook_secret: str) 
 
 def _activate_membership(player_id: int, plan: str, billing: str):
     """Activate a membership for a player."""
-    db = get_db()
     now = datetime.utcnow()
     if billing == "monthly":
         expires = now + timedelta(days=30)
@@ -156,23 +154,22 @@ def _activate_membership(player_id: int, plan: str, billing: str):
     else:
         expires = now + timedelta(days=30)
 
-    db.execute(
-        "INSERT INTO user_memberships (player_id, plan, expires_at, created_at) VALUES (?,?,?,?)",
-        (player_id, plan, expires.isoformat() if expires else None, now.isoformat()),
-    )
-    db.commit()
-    db.close()
+    with get_db_ctx() as db:
+        db.execute(
+            "INSERT INTO user_memberships (player_id, plan, expires_at, created_at) VALUES (?,?,?,?)",
+            (player_id, plan, expires.isoformat() if expires else None, now.isoformat()),
+        )
+        db.commit()
 
 
 def ensure_membership_table():
     """Create membership tables if they don't exist."""
-    db = get_db()
-    db.execute("""CREATE TABLE IF NOT EXISTS user_memberships (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        player_id INTEGER NOT NULL,
-        plan TEXT NOT NULL DEFAULT 'free',
-        expires_at TEXT,
-        created_at TEXT DEFAULT (datetime('now'))
-    )""")
-    db.commit()
-    db.close()
+    with get_db_ctx() as db:
+        db.execute("""CREATE TABLE IF NOT EXISTS user_memberships (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_id INTEGER NOT NULL,
+            plan TEXT NOT NULL DEFAULT 'free',
+            expires_at TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
+        )""")
+        db.commit()

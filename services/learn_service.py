@@ -1,5 +1,5 @@
 """Learning hall — module-organized concepts with explanations, formulas, and examples."""
-from database import get_db
+from database import get_db_ctx
 
 # Which concepts belong to which module
 MODULE_CONCEPTS = {
@@ -9,7 +9,7 @@ MODULE_CONCEPTS = {
     4: ["空间向量坐标运算", "法向量求法"],
     5: ["椭圆标准方程", "抛物线标准方程", "双曲线标准方程"],
     6: ["导数定义", "导数单调性", "导数极值最值", "导数切线"],
-    7: [],
+    7: ["集合运算", "充分必要条件"],
     8: ["复数运算"],
 }
 
@@ -271,8 +271,8 @@ CONCEPT_LESSONS = {
 
 def get_learn_modules():
     """Return modules with their concepts for the learning hall."""
-    db = get_db()
-    modules = db.execute("SELECT id, name, icon, weight, tier FROM modules ORDER BY sort_order").fetchall()
+    with get_db_ctx() as db:
+        modules = db.execute("SELECT id, name, icon, weight, tier FROM modules ORDER BY sort_order").fetchall()
     result = []
     for m in modules:
         mid = m["id"]
@@ -296,10 +296,10 @@ def get_learn_modules():
 
 def get_concept_tree():
     """Return all concepts organized by dependency hierarchy."""
-    db = get_db()
-    rows = db.execute(
-        "SELECT concept_name, parent_concept, textbook_ref FROM concept_dependencies ORDER BY concept_name"
-    ).fetchall()
+    with get_db_ctx() as db:
+        rows = db.execute(
+            "SELECT concept_name, parent_concept, textbook_ref FROM concept_dependencies ORDER BY concept_name"
+        ).fetchall()
 
     concepts = {}
     roots = []
@@ -349,19 +349,19 @@ def get_lesson(concept_name: str) -> dict | None:
 
 def _build_lesson_response(name: str, lesson: dict) -> dict:
     """Build a unified lesson response from either rich or basic format."""
-    db = get_db()
-    children = db.execute(
-        "SELECT concept_name FROM concept_dependencies WHERE parent_concept=?",
-        (name,),
-    ).fetchall()
-    parent_row = db.execute(
-        "SELECT parent_concept FROM concept_dependencies WHERE concept_name=?",
-        (name,),
-    ).fetchone()
-    ref_row = db.execute(
-        "SELECT textbook_ref FROM concept_dependencies WHERE concept_name=?",
-        (name,),
-    ).fetchone()
+    with get_db_ctx() as db:
+        children = db.execute(
+            "SELECT concept_name FROM concept_dependencies WHERE parent_concept=?",
+            (name,),
+        ).fetchall()
+        parent_row = db.execute(
+            "SELECT parent_concept FROM concept_dependencies WHERE concept_name=?",
+            (name,),
+        ).fetchone()
+        ref_row = db.execute(
+            "SELECT textbook_ref FROM concept_dependencies WHERE concept_name=?",
+            (name,),
+        ).fetchone()
 
     return {
         "name": name,

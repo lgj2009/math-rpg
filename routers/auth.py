@@ -47,11 +47,24 @@ class ForgotBody(BaseModel):
     email: str
 
 
+class ResetPasswordBody(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=4, max_length=100)
+
+
 @router.post("/forgot-password")
 def forgot_password(body: ForgotBody):
+    """Initiate password reset — sends email with reset link."""
     result = auth_service.forgot_password(body.email.strip())
+    return result
+
+
+@router.post("/reset-password")
+def reset_password(body: ResetPasswordBody):
+    """Complete password reset with token from email."""
+    result = auth_service.reset_password(body.token, body.new_password)
     if "detail" in result:
-        return {"ok": False, "message": result["detail"]}
+        raise HTTPException(400, result["detail"])
     return result
 
 

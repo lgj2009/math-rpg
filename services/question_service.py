@@ -1,7 +1,7 @@
 import json
 import uuid
 import random
-from database import get_db
+from database import get_db_ctx
 
 
 def get_questions_for_module(module_id: int, player_id: int, count: int = 10, lang: str = "zh") -> list:
@@ -11,54 +11,52 @@ def get_questions_for_module(module_id: int, player_id: int, count: int = 10, la
     session. Uses the player's module mastery accuracy to pick appropriately
     challenging questions.
     """
-    db = get_db()
+    with get_db_ctx() as db:
+        # --- Determine target difficulty from module mastery ---
+        mastery = db.execute(
+            "SELECT accuracy_avg, status FROM module_mastery WHERE player_id=? AND module_id=?",
+            (player_id, module_id),
+        ).fetchone()
 
-    # --- Determine target difficulty from module mastery ---
-    mastery = db.execute(
-        "SELECT accuracy_avg, status FROM module_mastery WHERE player_id=? AND module_id=?",
-        (player_id, module_id),
-    ).fetchone()
+        # Smooth difficulty: gradual mix instead of hard jump
+        target_difficulty = 1
+        difficulty_mix = 0  # 0=all d1, 1=all d2, 2=all d3
+        if mastery:
+            acc = mastery["accuracy_avg"]
+            if acc >= 0.90 and mastery["status"] in ("practicing", "mastered"):
+                target_difficulty = 3; difficulty_mix = 2
+            elif acc >= 0.80:
+                target_difficulty = 2; difficulty_mix = 1
+            elif acc >= 0.65:
+                target_difficulty = 2; difficulty_mix = 0.5  # mix d1 and d2
 
-    # Smooth difficulty: gradual mix instead of hard jump
-    target_difficulty = 1
-    difficulty_mix = 0  # 0=all d1, 1=all d2, 2=all d3
-    if mastery:
-        acc = mastery["accuracy_avg"]
-        if acc >= 0.90 and mastery["status"] in ("practicing", "mastered"):
-            target_difficulty = 3; difficulty_mix = 2
-        elif acc >= 0.80:
-            target_difficulty = 2; difficulty_mix = 1
-        elif acc >= 0.65:
-            target_difficulty = 2; difficulty_mix = 0.5  # mix d1 and d2
+        # --- Collect IDs of questions the player has already answered ---
+        answered_rows = db.execute(
+            "SELECT answered_question_ids FROM practice_records "
+            "WHERE player_id=? AND module_id=? AND answered_question_ids IS NOT NULL",
+            (player_id, module_id),
+        ).fetchall()
 
-    # --- Collect IDs of questions the player has already answered ---
-    answered_rows = db.execute(
-        "SELECT answered_question_ids FROM practice_records "
-        "WHERE player_id=? AND module_id=? AND answered_question_ids IS NOT NULL",
-        (player_id, module_id),
-    ).fetchall()
+        answered_set: set[int] = set()
+        for row in answered_rows:
+            try:
+                ids = json.loads(row["answered_question_ids"])
+                if isinstance(ids, list):
+                    answered_set.update(int(qid) for qid in ids)
+            except (json.JSONDecodeError, TypeError, ValueError):
+                pass
 
-    answered_set: set[int] = set()
-    for row in answered_rows:
-        try:
-            ids = json.loads(row["answered_question_ids"])
-            if isinstance(ids, list):
-                answered_set.update(int(qid) for qid in ids)
-        except (json.JSONDecodeError, TypeError, ValueError):
-            pass
-
-    # --- Fetch ALL available questions matching difficulty ---
-    # Use difficulty mix for smooth progression
-    all_rows = db.execute(
-        """
-        SELECT id, module_id, type, difficulty, content, content_en, content_vi,
-               options, options_en, options_vi, answer, answer_en, answer_vi,
-               solution, solution_en, solution_vi, time_limit_sec, source_type, source_ref
-        FROM questions
-        WHERE module_id = ? AND difficulty <= ?
-        """,
-        (module_id, target_difficulty),
-    ).fetchall()
+        # --- Fetch ALL available questions matching difficulty ---
+        all_rows = db.execute(
+            """
+            SELECT id, module_id, type, difficulty, content, content_en, content_vi,
+                   options, options_en, options_vi, answer, answer_en, answer_vi,
+                   solution, solution_en, solution_vi, time_limit_sec, source_type, source_ref
+            FROM questions
+            WHERE module_id = ? AND difficulty <= ?
+            """,
+            (module_id, target_difficulty),
+        ).fetchall()
 
     # Split by difficulty for smooth mixing
     d1_rows = [r for r in all_rows if r["difficulty"] <= 1]

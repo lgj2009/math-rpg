@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  /* ═══════════ Design Tokens ═══════════ */
+  :root {
+    --bg-base: #0a0e1a;
+    --bg-surface: #111827;
+    --bg-elevated: #1a2235;
+    --bg-field: #0f1525;
+    --text-primary: #e8ecf2;
+    --text-secondary: #8896ab;
+    --text-muted: #556278;
+    --gold: #f0b429;
+    --gold-dim: #b8860b;
+    --purple: #8b5cf6;
+    --emerald: #22c55e;
+    --ruby: #ef4444;
+    --sapphire: #3b82f6;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --sidebar-w: 240px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, 'Microsoft YaHei', sans-serif; background: #0a0e1a; color: #e8ecf2; display: flex; flex-direction: column; gap: 40px; padding: 40px; }
+  h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #f0b429; }
+  h3 { font-size: 13px; color: #8896ab; margin-bottom: 12px; font-weight: 400; }
+
+  /* ═══════════ Frame wrapper ═══════════ */
+  .frame { background: #0a0e1a; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); }
+  .frame-label { padding: 10px 16px; background: #111827; font-size: 12px; font-weight: 700; color: #f0b429; letter-spacing: 0.06em; border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+  /* ═══════════ 1. Sidebar Navigation ═══════════ */
+  .sidebar-demo { width: 240px; background: linear-gradient(180deg, #0f1525, #0a0e1a); border-right: 1px solid rgba(255,255,255,0.06); padding: 24px 14px; display: flex; flex-direction: column; gap: 2px; }
+  .player-card { text-align: center; padding: 16px 8px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 8px; }
+  .player-avatar { width: 56px; height: 56px; margin: 0 auto 8px; background: linear-gradient(135deg, rgba(240,180,41,0.2), rgba(139,92,246,0.2)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid rgba(240,180,41,0.3); }
+  .player-name { font-size: 15px; font-weight: 700; }
+  .player-level { font-size: 11px; color: #f0b429; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; font-weight: 600; }
+  .xp-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+  .xp-fill { height: 100%; background: linear-gradient(90deg, #b8860b, #f0b429); border-radius: 2px; width: 45%; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #8896ab; }
+  .nav-item.active { background: linear-gradient(135deg, rgba(240,180,41,0.12), rgba(240,180,41,0.04)); color: #f0b429; font-weight: 600; position: relative; }
+  .nav-item.active::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; background: #f0b429; border-radius: 0 2px 2px 0; }
+
+  /* ═══════════ 2. Welcome/Dashboard ═══════════ */
+  .dashboard { max-width: 900px; padding: 32px; }
+  .welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 40vh; text-align: center; }
+  .welcome h1 { font-size: 40px; font-weight: 800; background: linear-gradient(135deg, #f0b429, #fcd34d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+  .welcome p { color: #8896ab; margin-bottom: 28px; font-size: 16px; }
+  .welcome input { padding: 14px 18px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; background: #0f1525; color: #e8ecf2; font-size: 15px; width: 280px; }
+  .welcome button { padding: 14px; border: none; border-radius: 10px; background: linear-gradient(135deg, #b8860b, #f0b429); color: #1a1a1a; font-size: 16px; font-weight: 700; cursor: pointer; width: 280px; margin-top: 12px; }
+  .stat-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+  .stat-tile { background: #111827; border-radius: 14px; padding: 20px; border: 1px solid rgba(255,255,255,0.04); }
+  .stat-value { font-size: 36px; font-weight: 800; color: #f0b429; }
+  .stat-label { font-size: 12px; color: #8896ab; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+
+  /* ═══════════ 3. Module Grid ═══════════ */
+  .module-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; max-width: 900px; }
+  .module-card { background: #111827; border-radius: 14px; padding: 24px 16px; text-align: center; border: 1px solid rgba(255,255,255,0.04); }
+  .module-icon { font-size: 36px; display: block; margin-bottom: 10px; }
+  .module-name { font-weight: 700; font-size: 14px; }
+  .module-weight { color: #f0b429; font-size: 12px; font-weight: 600; margin-top: 4px; }
+
+  /* ═══════════ 4. Combat Screen ═══════════ */
+  .combat { max-width: 680px; padding: 20px; }
+  .boss-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .boss-name { font-size: 18px; font-weight: 800; }
+  .boss-round { font-size: 13px; color: #8896ab; }
+  .boss-hp-bar { width: 100%; height: 14px; background: rgba(255,255,255,0.06); border-radius: 7px; overflow: hidden; margin-bottom: 12px; }
+  .boss-hp-fill { height: 100%; border-radius: 7px; background: #22c55e; width: 70%; }
+  .question-card { background: #111827; padding: 28px; border-radius: 14px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.04); }
+  .question-content { font-size: 16px; line-height: 1.9; margin-bottom: 24px; }
+  .option { display: flex; gap: 12px; padding: 14px 16px; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; margin-bottom: 8px; font-size: 15px; }
+  .option.selected { border-color: #f0b429; background: rgba(240,180,41,0.06); }
+  .answer-input { width: 100%; padding: 14px 18px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; background: #0f1525; color: #e8ecf2; font-size: 15px; }
+  .btn-primary { padding: 10px 22px; border: none; border-radius: 10px; background: linear-gradient(135deg, #b8860b, #f0b429); color: #1a1a1a; font-size: 14px; font-weight: 700; }
+  .btn-secondary { padding: 10px 22px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; background: transparent; color: #8896ab; font-size: 14px; font-weight: 500; }
+  .btn-purple { padding: 8px 22px; border: none; border-radius: 10px; background: #8b5cf6; color: #fff; font-size: 13px; font-weight: 700; }
+
+  /* ═══════════ 5. Result Screen ═══════════ */
+  .result { text-align: center; max-width: 520px; padding: 32px; }
+  .result-number { font-size: 72px; font-weight: 800; color: #22c55e; }
+  .result-accuracy { font-size: 20px; font-weight: 600; margin: 8px 0; }
+  .result-stats { font-size: 14px; color: #8896ab; margin: 12px 0; }
+
+  /* ═══════════ 6. Mistake Card ═══════════ */
+  .mistake-card { background: #111827; border-radius: 14px; padding: 20px 22px; border: 1px solid rgba(255,255,255,0.04); max-width: 700px; margin-bottom: 12px; }
+  .mc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .mc-tag { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 700; }
+  .tag-calc { background: rgba(240,180,41,0.15); color: #f0b429; }
+  .tag-gap { background: rgba(139,92,246,0.15); color: #8b5cf6; }
+  .mc-question { font-size: 15px; line-height: 1.7; padding: 12px; background: #0f1525; border-radius: 10px; margin-bottom: 12px; }
+  .btn-retry { padding: 6px 16px; border: none; border-radius: 6px; background: #f0b429; color: #1a1a1a; font-size: 13px; font-weight: 700; }
+
+  /* ═══════════ 7. Task Board ═══════════ */
+  .task-section { max-width: 700px; margin-bottom: 22px; }
+  .task-card { background: #111827; border-radius: 14px; padding: 18px 22px; margin-bottom: 10px; display: flex; align-items: center; gap: 16px; border: 1px solid rgba(255,255,255,0.04); }
+  .task-content { flex: 1; font-size: 14px; line-height: 1.5; }
+  .task-reward { font-size: 13px; font-weight: 700; color: #f0b429; white-space: nowrap; }
+  .btn-complete { padding: 8px 18px; border: none; border-radius: 10px; background: #22c55e; color: #fff; font-size: 13px; font-weight: 700; }
+
+  /* ═══════════ 8. Season Pass ═══════════ */
+  .season { max-width: 500px; padding: 20px; }
+  .sp-progress { height: 24px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 12px; position: relative; }
+  .sp-progress-fill { height: 100%; background: linear-gradient(90deg, #b8860b, #f0b429); border-radius: 12px; width: 35%; }
+  .sp-progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #1a1a1a; }
+  .sp-tier { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+  .sp-tier-node { width: 48px; height: 48px; border-radius: 50%; background: #111827; border: 2px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #556278; }
+  .sp-tier.unlocked .sp-tier-node { border-color: #f0b429; background: rgba(240,180,41,0.12); }
+  .sp-tier.claimed .sp-tier-node { border-color: #22c55e; background: rgba(34,197,94,0.12); }
+  .sp-tier-card { flex: 1; background: #111827; border-radius: 14px; padding: 14px 16px; border: 1px solid rgba(255,255,255,0.04); }
+  .sp-tier-label { font-weight: 700; font-size: 13px; }
+  .sp-tier-xp { font-size: 12px; color: #556278; }
+
+  /* ═══════════ 9. Achievement Grid ═══════════ */
+  .achieve-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; max-width: 700px; }
+  .achieve-card { background: #111827; border-radius: 14px; padding: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.04); }
+  .achieve-card.locked { opacity: 0.5; }
+  .achieve-icon { font-size: 32px; margin-bottom: 8px; }
+  .achieve-name { font-weight: 700; font-size: 13px; }
+
+  /* ═══════════ 10. Learning Hall ═══════════ */
+  .lesson-card { background: #111827; border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; max-width: 700px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.04); }
+  .lesson-summary { background: rgba(240,180,41,0.08); padding: 14px 18px; border-radius: 10px; border-left: 3px solid #f0b429; max-width: 700px; font-size: 15px; line-height: 1.7; margin-bottom: 20px; }
+  .lesson-formula { background: rgba(240,180,41,0.06); padding: 20px 24px; border-radius: 14px; border: 1px solid rgba(240,180,41,0.25); max-width: 700px; font-size: 16px; line-height: 2.4; font-weight: 500; }
+
+  /* ═══════════ 11. Guild ═══════════ */
+  .guild-card { background: #111827; border-radius: 14px; padding: 18px 20px; border: 1px solid rgba(255,255,255,0.04); max-width: 700px; margin-bottom: 10px; }
+  .guild-card-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .guild-card-name { font-weight: 700; font-size: 15px; }
+  .guild-card-members { font-size: 13px; color: #8896ab; }
+  .chat-msg { padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 13px; margin-bottom: 4px; }
+  .chat-user { font-weight: 700; color: #f0b429; }
+  .chat-input { display: flex; gap: 8px; margin-top: 12px; max-width: 700px; }
+  .chat-input input { flex: 1; padding: 10px 14px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: #0f1525; color: #e8ecf2; font-size: 13px; }
+
+  /* ═══════════ 12. Progress ═══════════ */
+  .module-tabs { display: flex; flex-wrap: wrap; gap: 6px; max-width: 700px; }
+  .tab-btn { padding: 6px 14px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: transparent; color: #8896ab; font-size: 12px; cursor: pointer; font-weight: 600; }
+  .tab-btn.active { background: #f0b429; color: #1a1a1a; border-color: #f0b429; }
+</style>
+</head>
+<body>
+
+<!-- Page 1: Sidebar Navigation -->
+<div>
+  <h2>📐 Sidebar 侧边导航</h2>
+  <h3>Desktop layout — 240px fixed, player card + nav items</h3>
+  <div class="frame" style="display:inline-block">
+    <div class="sidebar-demo">
+      <div class="player-card">
+        <div class="player-avatar">📚</div>
+        <div class="player-name">冒险者</div>
+        <div class="player-level">Lv.5 解题新兵</div>
+        <div class="xp-bar"><div class="xp-fill"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
+          <span>🔥 5天</span><span>⚡ 85</span>
+        </div>
+      </div>
+      <div class="nav-item active">📊 冒险大厅</div>
+      <div class="nav-item">📋 任务板</div>
+      <div class="nav-item">📖 学艺堂</div>
+      <div class="nav-item">⚔️ 狩猎场</div>
+      <div class="nav-item">📝 错题本</div>
+      <div class="nav-item">📈 修炼进度</div>
+      <div class="nav-item">🏰 公会</div>
+      <div class="nav-item">📚 题库</div>
+      <div class="nav-item">🏁 赛季通行证</div>
+      <div class="nav-item">🏆 成就殿堂</div>
+      <div class="nav-item">⚙️ 设置</div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 2: Welcome + Dashboard -->
+<div>
+  <h2>🏠 冒险大厅 — Welcome & Dashboard</h2>
+  <h3>First-time user sees welcome form; returning user sees stat dashboard</h3>
+  <div class="frame">
+    <div class="dashboard">
+      <div class="welcome">
+        <h1>Math RPG</h1>
+        <p>把高中数学变成RPG冒险</p>
+        <input placeholder="输入你的冒险者名字...">
+        <button>⚔️ 开始冒险</button>
+      </div>
+      <div class="stat-tiles">
+        <div class="stat-tile"><div class="stat-value">1,250</div><div class="stat-label">XP</div></div>
+        <div class="stat-tile"><div class="stat-value">Lv.5</div><div class="stat-label">等级</div></div>
+        <div class="stat-tile"><div class="stat-value" style="color:#8b5cf6">75</div><div class="stat-label">估算分</div></div>
+        <div class="stat-tile"><div class="stat-value" style="color:#22c55e">5天</div><div class="stat-label">打卡</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 3: Module Grid (Hunting Ground) -->
+<div>
+  <h2>⚔️ 狩猎场 — Module Selection</h2>
+  <h3>8 modules as RPG-style cards, tap to start combat</h3>
+  <div class="frame" style="padding:24px">
+    <div class="module-grid">
+      <div class="module-card"><span class="module-icon">📐</span><span class="module-name">三角函数</span><span class="module-weight">15分</span></div>
+      <div class="module-card"><span class="module-icon">🔢</span><span class="module-name">数列</span><span class="module-weight">12分</span></div>
+      <div class="module-card"><span class="module-icon">🎲</span><span class="module-name">统计与概率</span><span class="module-weight">17分</span></div>
+      <div class="module-card"><span class="module-icon">📦</span><span class="module-name">立体几何</span><span class="module-weight">17分</span></div>
+      <div class="module-card"><span class="module-icon">📈</span><span class="module-name">解析几何</span><span class="module-weight">17分</span></div>
+      <div class="module-card"><span class="module-icon">📉</span><span class="module-name">导数及应用</span><span class="module-weight">17分</span></div>
+      <div class="module-card"><span class="module-icon">🔤</span><span class="module-name">集合与逻辑</span><span class="module-weight">5分</span></div>
+      <div class="module-card"><span class="module-icon">🧮</span><span class="module-name">复数与向量</span><span class="module-weight">10分</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 4: Combat Screen -->
+<div>
+  <h2>⚔️ 战斗刷题 — Combat Question Flow</h2>
+  <h3>One question at a time, boss HP bar, combo display, instant feedback</h3>
+  <div class="frame" style="padding:24px">
+    <div class="combat">
+      <div class="boss-header">
+        <span class="boss-name">🐉 三角魔龙</span>
+        <span class="boss-round">3 / 10</span>
+      </div>
+      <div class="boss-hp-bar"><div class="boss-hp-fill"></div></div>
+      <div class="question-card">
+        <div class="question-content">在 △ABC 中，已知 a=3，b=4，∠C=60°，求边 c 的长度</div>
+        <div class="option selected">A. √13</div>
+        <div class="option">B. 5</div>
+        <div class="option">C. √7</div>
+        <div class="option">D. 6</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;font-weight:700">⚡暴击: 12s</span>
+        <span style="display:flex;gap:8px">
+          <span class="btn-secondary">💡 提示</span>
+          <span class="btn-primary">⚔️ 攻击</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 5: Result Screen -->
+<div>
+  <h2>🏆 战斗结算 — Victory/Defeat Screen</h2>
+  <h3>Per-question review, gacha loot reveal, share button</h3>
+  <div class="frame" style="padding:24px">
+    <div class="result">
+      <h2 style="color:#e8ecf2">🏆 完美讨伐</h2>
+      <div style="font-size:48px;margin:12px 0">🐉</div>
+      <div class="result-number">8 / 10</div>
+      <div class="result-accuracy">正确率 80%</div>
+      <div class="result-stats">🔥 最大连击: 5 &nbsp;|&nbsp; ⚡ 暴击: 2次 &nbsp;|&nbsp; +240 XP</div>
+      <div style="background:rgba(139,92,246,0.08);padding:10px 16px;border-radius:10px;margin:10px 0;font-size:13px">📝 2道错题已加入错题本</div>
+      <div class="btn-primary" style="display:inline-block">返回狩猎场</div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 6: Mistake Book -->
+<div>
+  <h2>📝 错题本 — Mistake Cards</h2>
+  <h3>Each card shows question, wrong step, correct thought, retry button</h3>
+  <div class="frame" style="padding:24px">
+    <div class="mistake-card">
+      <div class="mc-header">
+        <b style="font-size:13px">三角函数</b>
+        <span class="mc-tag tag-calc">计算错误</span>
+      </div>
+      <div class="mc-question">已知 sinα=3/5, α∈(0,π/2), 则 cosα 等于</div>
+      <div style="font-size:13px;color:#8896ab;margin-bottom:4px"><b style="color:#e8ecf2">错因：</b>你的答案: B. 3/5，正确答案: B. 4/5</div>
+      <div style="font-size:13px;color:#8b5cf6;margin-bottom:12px"><b>思路：</b>由 sin²α+cos²α=1, cosα=4/5</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:#556278">重试 1 次</span>
+        <span class="btn-retry">🔁 重新挑战</span>
+      </div>
+    </div>
+    <div class="mistake-card" style="opacity:0.55">
+      <div class="mc-header">
+        <b style="font-size:13px">导数</b>
+        <span class="mc-tag tag-gap">知识盲区</span>
+        <span style="margin-left:auto;font-size:12px;color:#22c55e;font-weight:600">✅ 已掌握</span>
+      </div>
+      <div class="mc-question">求 f(x)=x³-3x 的极大值</div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 7: Task Board -->
+<div>
+  <h2>📋 任务板 — Daily Quests</h2>
+  <h3>Main quest, side quests (blind spot retries), rotating challenge</h3>
+  <div class="frame" style="padding:24px">
+    <div class="task-section">
+      <h3 style="color:#e8ecf2">🎯 主线任务</h3>
+      <div class="task-card">
+        <span>⚔️</span>
+        <span class="task-content">讨伐「三角函数」— 完成10道练习题</span>
+        <span style="font-size:12px;color:#8896ab;padding:4px 10px;background:rgba(255,255,255,0.04);border-radius:12px">30分钟</span>
+        <span class="task-reward">+50 XP</span>
+        <span class="btn-complete">完成</span>
+      </div>
+    </div>
+    <div class="task-section">
+      <h3 style="color:#e8ecf2">🔬 支线任务</h3>
+      <div class="task-card">
+        <span>🧪</span>
+        <span class="task-content">炼金: 复测盲点「正弦定理混淆」</span>
+        <span style="font-size:12px;color:#8896ab;padding:4px 10px;background:rgba(255,255,255,0.04);border-radius:12px">15分钟</span>
+        <span class="task-reward">+30 XP</span>
+      </div>
+    </div>
+    <div class="task-section">
+      <h3 style="color:#e8ecf2">🏆 每日挑战</h3>
+      <div class="task-card">
+        <span>🎯</span>
+        <span class="task-content">精准挑战: 一次练习正确率100%</span>
+        <span class="task-reward">+80 XP</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 8: Season Pass -->
+<div>
+  <h2>🏁 赛季通行证 — Battle Pass Tiers</h2>
+  <h3>10 tiers with free & premium tracks, XP progress bar</h3>
+  <div class="frame" style="padding:24px">
+    <div class="season">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <b style="font-size:18px">第1赛季: 函数觉醒</b>
+        <span style="background:rgba(240,180,41,0.12);color:#f0b429;padding:6px 14px;border-radius:20px;font-weight:700;font-size:13px">52天</span>
+      </div>
+      <div class="sp-progress"><div class="sp-progress-fill"></div><div class="sp-progress-text">350 / 4000 XP</div></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:16px">
+        <span style="color:#8896ab">🆓 免费</span><span style="color:#8b5cf6">💎 付费</span>
+      </div>
+      <div class="sp-tier unlocked"><div class="sp-tier-node">1</div><div class="sp-tier-card"><div class="sp-tier-label">Tier 1</div><div class="sp-tier-xp">100 XP</div><div style="display:flex;gap:8px;margin-top:8px"><div style="flex:1;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:11px;color:#8896ab">🪙 100金币</div><div style="flex:1;padding:8px;background:rgba(139,92,246,0.08);border-radius:8px;font-size:11px;color:#8b5cf6">⚔️ 铁剑头像框</div></div></div></div>
+      <div class="sp-tier claimed"><div class="sp-tier-node">2</div><div class="sp-tier-card"><div class="sp-tier-label">Tier 2</div><div style="color:#22c55e;font-size:13px;font-weight:700">✅ 已领取</div></div></div>
+      <div class="sp-tier"><div class="sp-tier-node">3</div><div class="sp-tier-card"><div class="sp-tier-label">Tier 3</div><div class="sp-tier-xp">500 XP</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 9: Achievements -->
+<div>
+  <h2>🏆 成就殿堂 — Achievement Grid</h2>
+  <h3>Locked (dimmed) vs unlocked cards across 5 categories</h3>
+  <div class="frame" style="padding:24px">
+    <div class="achieve-grid">
+      <div class="achieve-card"><div class="achieve-icon">⚔️</div><div class="achieve-name">初战告捷</div><div style="font-size:11px;color:#8896ab">完成第一次练习</div></div>
+      <div class="achieve-card"><div class="achieve-icon">🛡️</div><div class="achieve-name">身经百战</div><div style="font-size:11px;color:#8896ab">完成10次练习</div></div>
+      <div class="achieve-card"><div class="achieve-icon">💎</div><div class="achieve-name">完美无瑕</div><div style="font-size:11px;color:#8896ab">100%正确率</div></div>
+      <div class="achieve-card"><div class="achieve-icon">🔥</div><div class="achieve-name">连击大师</div><div style="font-size:11px;color:#8896ab">达到5连击</div></div>
+      <div class="achieve-card locked"><div class="achieve-icon">👑</div><div class="achieve-name">模块大师</div><div style="font-size:11px;color:#556278">掌握一个模块</div></div>
+      <div class="achieve-card locked"><div class="achieve-icon">🌙</div><div class="achieve-name">月之恒</div><div style="font-size:11px;color:#556278">连续30天打卡</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 10: Learning Hall -->
+<div>
+  <h2>📖 学艺堂 — Concept Lessons</h2>
+  <h3>Concept list cards, formula highlights, examples with solutions</h3>
+  <div class="frame" style="padding:24px">
+    <div class="lesson-card"><span>📐</span><span style="flex:1;font-weight:600">正弦定理</span><span style="color:#556278">必修五 P2</span><span style="color:#8896ab">▶</span></div>
+    <div class="lesson-card"><span>📐</span><span style="flex:1;font-weight:600">余弦定理</span><span style="color:#556278">必修五 P6</span><span style="color:#8896ab">▶</span></div>
+    <div class="lesson-card"><span>📐</span><span style="flex:1;font-weight:600">和差角公式</span><span style="color:#556278">必修四 P25</span><span style="color:#8896ab">▶</span></div>
+    <div style="margin-top:16px">
+      <div class="lesson-summary">
+        <b>正弦定理：</b>在任意三角形中，各边与其对角的正弦值之比相等，且等于外接圆直径。
+      </div>
+      <div class="lesson-formula">a/sin A = b/sin B = c/sin C = 2R</div>
+      <div style="margin-top:16px;padding:16px;background:#111827;border-radius:14px;border:1px solid rgba(255,255,255,0.04);max-width:700px">
+        <div style="font-size:14px;margin-bottom:12px;line-height:1.7"><b>例题：</b>在 △ABC 中，已知 A=30°, B=45°, a=10，求边 b。</div>
+        <div style="font-size:14px;line-height:1.8;color:#8b5cf6">由正弦定理：a/sinA = b/sinB → b = a·sinB/sinA = 10√2</div>
+        <div style="font-weight:700;color:#22c55e;margin-top:8px">答案：b = 10√2</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 11: Guild -->
+<div>
+  <h2>🏰 公会 — Guild Chat & Boss</h2>
+  <h3>Member list, chat messages, boss HP bar, activity feed</h3>
+  <div class="frame" style="padding:24px">
+    <div class="guild-card">
+      <div class="guild-card-header">
+        <span class="guild-card-name">⚔️ 数学骑士团</span>
+        <span class="guild-card-members">3/5 成员</span>
+      </div>
+      <div style="font-size:13px;color:#8896ab;margin-bottom:10px">一起刷题，讨伐公会Boss！</div>
+      <div style="display:flex;gap:16px;font-size:12px;color:#556278;margin-bottom:10px">
+        <span>📅 日贡: 150 XP</span><span>📊 周贡: 820 XP</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);padding:10px;border-radius:8px">
+        <div class="chat-msg"><span class="chat-user">小明</span> 今天连击8题！<span style="font-size:10px;color:#556278;margin-left:8px">2分钟前</span></div>
+        <div class="chat-msg"><span class="chat-user">小红</span> 公会Boss还剩300HP，谁来帮忙？<span style="font-size:10px;color:#556278;margin-left:8px">5分钟前</span></div>
+      </div>
+      <div class="chat-input"><input placeholder="发送消息..."><span class="btn-primary" style="padding:6px 14px;font-size:12px">发送</span></div>
+    </div>
+    <div style="background:#111827;border-radius:14px;padding:20px;text-align:center;max-width:700px;border:1px solid rgba(255,255,255,0.04);margin-top:12px">
+      <div style="font-size:36px">🐲</div>
+      <div style="font-weight:700;font-size:16px;margin-bottom:8px">公会Boss: 暗影巨龙</div>
+      <div class="boss-hp-bar"><div class="boss-hp-fill" style="width:60%;background:#ef4444"></div></div>
+      <div style="font-size:12px;color:#8896ab;margin:8px 0">300 / 500 HP</div>
+      <span class="btn-purple">⚔️ 攻击 (-25 HP)</span>
+    </div>
+  </div>
+</div>
+
+<!-- Page 12: Progress -->
+<div>
+  <h2>📈 修炼进度 — Module Mastery Detail</h2>
+  <h3>Module tabs + 5-dimension mastery breakdown per module</h3>
+  <div class="frame" style="padding:24px">
+    <div class="module-tabs" style="margin-bottom:18px">
+      <span class="tab-btn active">三角函数</span>
+      <span class="tab-btn">数列</span>
+      <span class="tab-btn">统计与概率</span>
+      <span class="tab-btn">立体几何</span>
+      <span class="tab-btn">解析几何</span>
+      <span class="tab-btn">导数</span>
+    </div>
+    <div style="background:#111827;border-radius:14px;padding:20px;max-width:700px;border:1px solid rgba(255,255,255,0.04)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+        <span style="font-size:26px">📐</span>
+        <span style="font-weight:700;font-size:15px">三角函数与解三角形</span>
+        <span style="margin-left:auto;font-size:13px;color:#8896ab">权重 15分</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:#8896ab;width:80px">准确率</span><div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px"><div style="height:100%;background:linear-gradient(90deg,#8b5cf6,#f0b429);border-radius:3px;width:85%"></div></div><span style="font-size:13px;font-weight:700;width:40px;text-align:right">85%</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:#8896ab;width:80px">速度达标</span><div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px"><div style="height:100%;background:#22c55e;border-radius:3px;width:100%"></div></div><span style="font-size:13px;font-weight:700;width:40px;text-align:right;color:#22c55e">✓</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:#8896ab;width:80px">盲点清除</span><div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px"><div style="height:100%;background:linear-gradient(90deg,#8b5cf6,#f0b429);border-radius:3px;width:60%"></div></div><span style="font-size:13px;font-weight:700;width:40px;text-align:right">60%</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:#8896ab;width:80px">稳定度</span><div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px"><div style="height:100%;background:linear-gradient(90deg,#8b5cf6,#f0b429);border-radius:3px;width:72%"></div></div><span style="font-size:13px;font-weight:700;width:40px;text-align:right">0.72</span></div>
+      </div>
+      <div style="margin-top:16px"><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:rgba(240,180,41,0.15);color:#f0b429">🟡 practicing</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Design Tokens Reference -->
+<div>
+  <h2>🎨 Design Tokens 设计变量参考</h2>
+  <h3>核心配色 + 排版 + 圆角 + 阴影</h3>
+  <div class="frame" style="padding:24px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;max-width:700px">
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#0a0e1a;border-radius:6px;border:1px solid rgba(255,255,255,0.1)"></div><span style="font-size:12px">bg-base #0a0e1a</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#111827;border-radius:6px"></div><span style="font-size:12px">bg-surface #111827</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#1a2235;border-radius:6px"></div><span style="font-size:12px">bg-elevated #1a2235</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#0f1525;border-radius:6px"></div><span style="font-size:12px">bg-field #0f1525</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#e8ecf2;border-radius:6px"></div><span style="font-size:12px">text-primary</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#8896ab;border-radius:6px"></div><span style="font-size:12px">text-secondary</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#556278;border-radius:6px"></div><span style="font-size:12px">text-muted</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#f0b429;border-radius:6px"></div><span style="font-size:12px">gold #f0b429</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#8b5cf6;border-radius:6px"></div><span style="font-size:12px">purple #8b5cf6</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#22c55e;border-radius:6px"></div><span style="font-size:12px">emerald #22c55e</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#ef4444;border-radius:6px"></div><span style="font-size:12px">ruby #ef4444</span></div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;background:#3b82f6;border-radius:6px"></div><span style="font-size:12px">sapphire #3b82f6</span></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:16px;flex-wrap:wrap">
+      <div style="padding:12px 16px;background:#111827;border-radius:10px;font-size:13px">🔘 radius-sm: 6px</div>
+      <div style="padding:12px 16px;background:#111827;border-radius:10px;font-size:13px">🔘 radius: 10px</div>
+      <div style="padding:12px 16px;background:#111827;border-radius:14px;font-size:13px">🔘 radius-lg: 14px</div>
+      <div style="padding:12px 16px;background:#111827;border-radius:10px;font-size:13px">👻 shadow-card</div>
+      <div style="padding:12px 16px;background:#111827;border-radius:10px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,0.4)">👻 shadow-elevated</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

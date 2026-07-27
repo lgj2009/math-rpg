@@ -348,18 +348,23 @@ def seed():
     # Questions
     _seed_questions(cur)
 
-    # Also load real exam questions
+    # Also load real exam questions from add_exam_questions (if available)
+    _seed_exam = None
     try:
         from add_exam_questions import EXAM_QUESTIONS, _seed_exam_questions
-        _seed_exam_questions(cur, EXAM_QUESTIONS)
+        _seed_exam = _seed_exam_questions
+        _seed_exam(cur, EXAM_QUESTIONS)
         print("  Exam questions loaded.")
     except ImportError:
         pass
 
-    # Also load expanded curated questions
+    # Also load expanded curated questions from expand_questions (if available)
     try:
         from expand_questions import EXPAND_QUESTIONS
-        _seed_exam_questions(cur, EXPAND_QUESTIONS)
+        if _seed_exam is None:
+            from add_exam_questions import _seed_exam_questions
+            _seed_exam = _seed_exam_questions
+        _seed_exam(cur, EXPAND_QUESTIONS)
         print("  Curated questions loaded.")
     except ImportError:
         pass

@@ -1,6 +1,6 @@
 """Stats & dashboard endpoints."""
 from fastapi import APIRouter, HTTPException
-from database import get_db
+from database import get_db_ctx
 from services.player_service import get_player
 from services.mastery_service import calculate_mastery
 
@@ -9,12 +9,13 @@ router = APIRouter(prefix="/api/players", tags=["stats"])
 
 @router.get("/{player_id}/dashboard")
 def dashboard(player_id: int):
-    db = get_db()
     p = get_player(player_id)
     if not p:
         raise HTTPException(404, "Player not found")
 
-    modules = db.execute("SELECT * FROM modules ORDER BY sort_order").fetchall()
+    with get_db_ctx() as db:
+        modules = db.execute("SELECT * FROM modules ORDER BY sort_order").fetchall()
+
     masteries = []
     estimated_score = 0
 
@@ -32,11 +33,12 @@ def dashboard(player_id: int):
             estimated_score += m["weight"] * 0.6
 
     # Compute totals from practice_records (players table lacks these columns)
-    totals = db.execute("""
-        SELECT COALESCE(SUM(total_questions), 0) as total_q,
-               COALESCE(SUM(correct_count), 0) as total_c
-        FROM practice_records WHERE player_id=?
-    """, (player_id,)).fetchone()
+    with get_db_ctx() as db:
+        totals = db.execute("""
+            SELECT COALESCE(SUM(total_questions), 0) as total_q,
+                   COALESCE(SUM(correct_count), 0) as total_c
+            FROM practice_records WHERE player_id=?
+        """, (player_id,)).fetchone()
 
     return {
         "player": p,
@@ -50,12 +52,13 @@ def dashboard(player_id: int):
 
 @router.get("/{player_id}/progress")
 def progress(player_id: int):
-    db = get_db()
     p = get_player(player_id)
     if not p:
         raise HTTPException(404, "Player not found")
 
-    modules = db.execute("SELECT * FROM modules ORDER BY sort_order").fetchall()
+    with get_db_ctx() as db:
+        modules = db.execute("SELECT * FROM modules ORDER BY sort_order").fetchall()
+
     module_details = []
 
     for m in modules:
@@ -70,11 +73,12 @@ def progress(player_id: int):
         })
 
     # Aggregate stats
-    totals = db.execute("""
-        SELECT COALESCE(SUM(total_questions), 0) as total_q,
-               COALESCE(SUM(correct_count), 0) as total_c
-        FROM practice_records WHERE player_id=?
-    """, (player_id,)).fetchone()
+    with get_db_ctx() as db:
+        totals = db.execute("""
+            SELECT COALESCE(SUM(total_questions), 0) as total_q,
+                   COALESCE(SUM(correct_count), 0) as total_c
+            FROM practice_records WHERE player_id=?
+        """, (player_id,)).fetchone()
 
     return {
         "player_id": player_id,

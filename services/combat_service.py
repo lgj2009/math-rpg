@@ -1,28 +1,43 @@
 """Combat-style practice: one question at a time, instant feedback, combo system."""
 import json, time
-from database import get_db
+from database import get_db, get_db_ctx
 from services.player_service import spend_energy, award_xp, get_player
 from services.gacha_service import roll_gacha
 import config
 
 # In-memory session store
 _sessions: dict[str, dict] = {}
+SESSION_TTL_SEC = 1800  # 30 minutes — stale sessions are auto-cleaned
+
+
+def _cleanup_stale_sessions():
+    """Remove sessions that have been idle too long."""
+    now = time.time()
+    stale = [sid for sid, s in _sessions.items()
+             if now - s.get("last_access", s["started_at"]) > SESSION_TTL_SEC]
+    for sid in stale:
+        del _sessions[sid]
 
 
 def start_combat(player_id: int, module_id: int, count: int = 10, lang: str = "zh") -> dict | None:
-    """Start a combat session — returns first question + boss info."""
+    """Start a combat session — deducts energy upfront, returns first question + boss info."""
     from services.question_service import get_questions_for_module, generate_session_id
 
     questions = get_questions_for_module(module_id, player_id, count, lang)
     if not questions:
         return None
 
-    session_id = generate_session_id()
+    # Calculate energy cost and deduct upfront (prevents XP-without-cost on crash)
     cost = sum(config.FOCUS_COSTS.get(q["type"], 1) for q in questions)
+    if not spend_energy(player_id, cost):
+        return {"detail": "not enough focus energy"}
 
-    db = get_db()
-    mod = db.execute("SELECT name FROM modules WHERE id=?", (module_id,)).fetchone()
+    session_id = generate_session_id()
 
+    with get_db_ctx() as db:
+        mod = db.execute("SELECT name FROM modules WHERE id=?", (module_id,)).fetchone()
+
+    _cleanup_stale_sessions()
     _sessions[session_id] = {
         "player_id": player_id,
         "module_id": module_id,
@@ -36,6 +51,7 @@ def start_combat(player_id: int, module_id: int, count: int = 10, lang: str = "z
         "total_time_ms": 0,
         "focus_cost": cost,
         "started_at": time.time(),
+        "last_access": time.time(),
         "per_question": [],
     }
 
@@ -63,8 +79,9 @@ def answer_question(session_id: str, answer: str, time_ms: int) -> dict:
     """Submit one answer — returns instant feedback + next question or results."""
     session = _sessions.get(session_id)
     if not session:
-        return {"detail": "session not found", "finished": True}
+        return {"detail": "session not found or expired", "finished": True}
 
+    session["last_access"] = time.time()
     current_q_idx = session["current_idx"]
     q = session["questions"][current_q_idx]
     correct_answer = str(q.get("answer", "")).strip()
@@ -76,7 +93,7 @@ def answer_question(session_id: str, answer: str, time_ms: int) -> dict:
         session["correct"] += 1
         session["combo"] += 1
         session["max_combo"] = max(session["max_combo"], session["combo"])
-        # Crit: first 15 seconds = double
+        # Crit: answered within first 15 seconds
         crit = time_ms < 15000
         if crit:
             session["crits"] += 1
@@ -138,8 +155,9 @@ def answer_question(session_id: str, answer: str, time_ms: int) -> dict:
     }
 
     if finished:
-        # Combat complete — finalize
+        # Combat complete — finalize: record practice, create mistakes, gacha
         feedback["final"] = _finalize_combat(session, session_id)
+        _sessions.pop(session_id, None)  # Clean up
 
     if not finished:
         # Next question
@@ -155,51 +173,49 @@ def answer_question(session_id: str, answer: str, time_ms: int) -> dict:
 
 
 def _finalize_combat(session: dict, sid: str) -> dict:
-    """End combat: deduct energy, roll gacha, create mistakes, record practice, check mastery."""
-    db = get_db()
+    """End combat: record practice, create mistakes, roll gacha, update mastery."""
     pid = session["player_id"]
     mid = session["module_id"]
     total = len(session["questions"])
     correct = session["correct"]
     accuracy = correct / total if total > 0 else 0
 
-    # Deduct energy
-    cost = session["focus_cost"]
-    if cost:
-        spend_energy(pid, cost)
+    with get_db_ctx() as db:
+        # Record practice
+        question_ids = [q["id"] for q in session["questions"]]
+        time_sec = int(session["total_time_ms"] / 1000)
+        db.execute(
+            """INSERT INTO practice_records (player_id, module_id, total_questions, correct_count,
+               time_used_sec, session_id, answered_question_ids)
+               VALUES (?,?,?,?,?,?,?)""",
+            (pid, mid, total, correct, time_sec, sid, json.dumps(question_ids)),
+        )
+        db.commit()
 
-    # Record practice
-    question_ids = [q["id"] for q in session["questions"]]
-    time_sec = int(session["total_time_ms"] / 1000)
-    db.execute(
-        """INSERT INTO practice_records (player_id, module_id, total_questions, correct_count, time_used_sec, session_id, answered_question_ids)
-           VALUES (?,?,?,?,?,?,?)""",
-        (pid, mid, total, correct, time_sec, sid, json.dumps(question_ids)),
-    )
-    db.commit()
-
-    # Auto-create mistakes
-    mistakes_created = 0
-    for pq in session["per_question"]:
-        if not pq["is_correct"]:
-            existing = db.execute(
-                "SELECT id FROM mistakes WHERE player_id=? AND question=? AND mastered=0",
-                (pid, pq["content"]),
-            ).fetchone()
-            if not existing:
-                db.execute(
-                    """INSERT INTO mistakes (player_id, module_id, question, wrong_step, correct_thought, knowledge_point, error_type)
-                       VALUES (?,?,?,?,?,?,?)""",
-                    (pid, mid, pq["content"],
-                     f"你的答案: {pq['user_answer']}，正确答案: {pq['correct_answer']}",
-                     pq.get("solution", ""), "", "knowledge_gap"),
-                )
-                mistakes_created += 1
-    db.commit()
+        # Auto-create mistakes for wrong answers
+        mistakes_created = 0
+        for pq in session["per_question"]:
+            if not pq["is_correct"]:
+                existing = db.execute(
+                    "SELECT id FROM mistakes WHERE player_id=? AND question=? AND mastered=0",
+                    (pid, pq["content"]),
+                ).fetchone()
+                if not existing:
+                    db.execute(
+                        """INSERT INTO mistakes (player_id, module_id, question, wrong_step,
+                           correct_thought, knowledge_point, error_type)
+                           VALUES (?,?,?,?,?,?,?)""",
+                        (pid, mid, pq["content"],
+                         f"你的答案: {pq['user_answer']}，正确答案: {pq['correct_answer']}",
+                         pq.get("solution", ""), "", "knowledge_gap"),
+                    )
+                    mistakes_created += 1
+        db.commit()
 
     # Tasks auto-complete
     from services.practice_service import _auto_complete_tasks
-    tasks_done = _auto_complete_tasks(db, pid)
+    with get_db_ctx() as db2:
+        tasks_done = _auto_complete_tasks(db2, pid)
 
     # Mastery recalc
     try:
@@ -214,7 +230,7 @@ def _finalize_combat(session: dict, sid: str) -> dict:
     # Perfect bonus: extra gacha roll
     if accuracy == 1.0:
         gacha2 = roll_gacha(pid, streak_bonus=True)
-        gacha = gacha2  # Use the better roll
+        gacha = gacha2
 
     # Title based on performance
     if accuracy == 1.0:

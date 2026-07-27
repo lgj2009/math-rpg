@@ -7,10 +7,10 @@ router = APIRouter(prefix="/api", tags=["practice"])
 
 @router.get("/modules", response_model=list[ModuleResponse])
 def list_modules():
-    from database import get_db
+    from database import get_db_ctx
 
-    db = get_db()
-    rows = db.execute("SELECT * FROM modules ORDER BY sort_order").fetchall()
+    with get_db_ctx() as db:
+        rows = db.execute("SELECT * FROM modules ORDER BY sort_order").fetchall()
     return [dict(r) for r in rows]
 
 

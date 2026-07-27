@@ -48,6 +48,7 @@ const practice = {
 
     // ─── Boss Intro ────────────────────────────────────────────────
     _renderBoss(q, qNum) {
+        this._currentQuestion = q;  // cache for _showHint and other helpers
         const s = this._session;
         const main = document.getElementById('page-practice');
         const hpPct = Math.round((s.total_questions - qNum + 1) / s.total_questions * 100);
@@ -215,7 +216,7 @@ const practice = {
 
     _showHint() {
         this._usedHint = true;
-        const q = this._session.questions[this._session.current_idx || 0];
+        const q = this._currentQuestion;  // stored in _renderBoss each round
         if (!q) return;
         const sol = q.solution || '';
         const hint = sol.split('。')[0] || sol.substring(0, 80);

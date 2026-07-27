@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from services import feedback_service
-from database import get_db
+from database import get_db_ctx
 
 router = APIRouter(prefix="/api", tags=["feedback"])
 
@@ -30,8 +30,8 @@ def submit(body: FeedbackSubmit):
 @router.get("/admin/feedback")
 def list_feedback():
     """List all feedback (simple admin view)."""
-    db = get_db()
-    rows = db.execute(
-        "SELECT * FROM feedback ORDER BY created_at DESC LIMIT 50"
-    ).fetchall()
+    with get_db_ctx() as db:
+        rows = db.execute(
+            "SELECT * FROM feedback ORDER BY created_at DESC LIMIT 50"
+        ).fetchall()
     return [dict(r) for r in rows]

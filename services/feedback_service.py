@@ -3,19 +3,19 @@ import smtplib
 import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from database import get_db
+from database import get_db_ctx
 import config
 
 
 def submit_feedback(player_id: int | None, username: str, category: str, message: str, page: str = "") -> dict:
     """Save feedback to DB and attempt email delivery."""
-    db = get_db()
-    cur = db.execute(
-        "INSERT INTO feedback (player_id, username, category, message, page) VALUES (?,?,?,?,?)",
-        (player_id, username, category, message, page),
-    )
-    fid = cur.lastrowid
-    db.commit()
+    with get_db_ctx() as db:
+        cur = db.execute(
+            "INSERT INTO feedback (player_id, username, category, message, page) VALUES (?,?,?,?,?)",
+            (player_id, username, category, message, page),
+        )
+        fid = cur.lastrowid
+        db.commit()
 
     # Try to send email (non-blocking — failure is logged but doesn't break)
     email_result = _send_email(username, category, message, page)
@@ -31,6 +31,8 @@ def _send_email(username: str, category: str, message: str, page: str) -> bool:
     """Send feedback via QQ SMTP. Returns True if sent successfully."""
     if not config.SMTP_ENABLED:
         return False
+    if config.SMTP_PASSWORD == "YOUR_QQ_AUTH_CODE":
+        return False  # SMTP not configured
 
     try:
         ctx = ssl.create_default_context()
